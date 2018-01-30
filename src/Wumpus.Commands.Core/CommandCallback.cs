@@ -12,6 +12,6 @@ namespace Wumpus.Commands
     /// <param name="services">The service container for requesting required services</param>
     /// <param name="arguments">The pre-parsed arguments to the command</param>
     /// <returns>An object indicating the command's success</returns>
-    public delegate Task<CommandResult> CommandCallback(CommandInfo command,
+    public delegate Task<ICommandResult> CommandCallback(CommandInfo command,
         IServiceProvider services, object[] arguments);
 }

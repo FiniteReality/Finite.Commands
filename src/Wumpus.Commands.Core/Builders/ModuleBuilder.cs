@@ -7,7 +7,6 @@ namespace Wumpus.Commands
     /// <summary>
     /// A builder class for creating Modules.
     /// </summary>
-    [DebuggerDisplay("{Name,NQ}")]
     public class ModuleBuilder
     {
         // Prefixes that this module adds to a command
@@ -106,9 +105,12 @@ namespace Wumpus.Commands
         /// Builds the module, including submodules and commands.
         /// </summary>
         /// <returns>The built module</returns>
-        public void Build()
-        {
+        public ModuleInfo Build()
+            => Build(null);
 
+        internal ModuleInfo Build(ModuleInfo parent)
+        {
+            return new ModuleInfo(parent, Aliases, Attributes, Submodules, Commands);
         }
     }
 }

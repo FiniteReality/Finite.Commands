@@ -9,7 +9,6 @@ namespace Wumpus.Commands
     /// <summary>
     /// A builder class for creating <see cref="CommandInfo"/> instances.
     /// </summary>
-    [DebuggerDisplay("{Name,NQ}")]
     public class CommandBuilder
     {
         // Aliases of the command
@@ -89,8 +88,11 @@ namespace Wumpus.Commands
         /// </summary>
         /// <returns>The built command.</returns>
         public CommandInfo Build()
+            => Build(null);
+
+        internal CommandInfo Build(ModuleInfo module)
         {
-            return new CommandInfo(Callback, Attributes, Aliases);
+            return new CommandInfo(module, Callback, Attributes, Aliases);
         }
     }
 }

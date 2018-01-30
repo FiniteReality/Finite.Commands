@@ -4,7 +4,8 @@ using System.Text;
 
 namespace Wumpus.Commands
 {
-    public class CommandResult
+    public interface ICommandResult
     {
+        bool IsSuccess { get; }
     }
 }
