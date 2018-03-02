@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -40,11 +40,6 @@ namespace Wumpus.Commands
             => _commands.AsReadOnly();
 
         /// <summary>
-        /// The parent of the created Module.
-        /// </summary>
-        public ModuleBuilder Parent { get; internal set; }
-
-        /// <summary>
         /// Creates a new ModuleBuilder.
         /// </summary>
         public ModuleBuilder()
@@ -60,7 +55,7 @@ namespace Wumpus.Commands
         /// </summary>
         /// <param name="aliases">The new aliases to add</param>
         /// <returns>The current instance, for chaining calls</returns>
-        public ModuleBuilder WithAliases(params string[] aliases)
+        public ModuleBuilder AddAliases(params string[] aliases)
         {
             _aliases.AddRange(aliases);
             return this;
@@ -73,7 +68,6 @@ namespace Wumpus.Commands
         /// <returns>The current instnace, for chaining calls</returns>
         public ModuleBuilder AddSubmodule(ModuleBuilder builder)
         {
-            builder.Parent = this;
             _submodules.Add(builder);
             return this;
         }
@@ -96,7 +90,6 @@ namespace Wumpus.Commands
         /// <returns>The current instance, for chaining calls</returns>
         public ModuleBuilder AddCommand(CommandBuilder command)
         {
-            command.Module = this;
             _commands.Add(command);
             return this;
         }

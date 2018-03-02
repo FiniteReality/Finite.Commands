@@ -1,6 +1,6 @@
 namespace Wumpus.Commands
 {
-    public class ModuleBase<TContext>
+    public abstract class ModuleBase<TContext>
         : IModule<TContext>
         where TContext : ICommandContext
     {

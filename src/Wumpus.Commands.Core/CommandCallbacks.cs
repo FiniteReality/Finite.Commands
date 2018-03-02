@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,4 +14,8 @@ namespace Wumpus.Commands
     /// <returns>An object indicating the command's success</returns>
     public delegate Task<ICommandResult> CommandCallback(CommandInfo command,
         IServiceProvider services, object[] arguments);
+
+    public delegate void OnBuildingCallback(ModuleBuilder module);
+
+    public delegate void OnExecutingCallback(CommandInfo command);
 }

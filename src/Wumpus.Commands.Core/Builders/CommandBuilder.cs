@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -34,11 +34,6 @@ namespace Wumpus.Commands
         public CommandCallback Callback { get; set; }
 
         /// <summary>
-        /// The module which the command belongs to.
-        /// </summary>
-        public ModuleBuilder Module { get; internal set; }
-
-        /// <summary>
         /// Creates a new CommandBuilder with the specified callback.
         /// </summary>
         /// <param name="callback">The callback which is executed whe command is invoked.</param>
@@ -55,7 +50,7 @@ namespace Wumpus.Commands
         /// </summary>
         /// <param name="aliases">The new aliases to add</param>
         /// <returns>The current instance, for chaining calls</returns>
-        public CommandBuilder WithAliases(params string[] aliases)
+        public CommandBuilder AddAliases(params string[] aliases)
         {
             _aliases.AddRange(aliases);
             return this;

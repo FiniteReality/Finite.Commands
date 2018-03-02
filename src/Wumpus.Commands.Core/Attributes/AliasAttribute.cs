@@ -2,13 +2,13 @@ using System;
 
 namespace Wumpus.Commands
 {
-    [AttributeUsage(AttributeTargets.Method, Inherited = true,
+    [AttributeUsage(AttributeTargets.Class, Inherited = true,
         AllowMultiple = false)]
-    public sealed class CommandAttribute : Attribute
+    public sealed class AliasAttribute : Attribute
     {
         public string[] Aliases { get; }
 
-        public CommandAttribute(params string[] aliases)
+        public AliasAttribute(params string[] aliases)
         {
             Aliases = aliases;
         }
