@@ -14,13 +14,13 @@ namespace Wumpus.Commands
         private static readonly object[] _emptyObjectArray = new object[]{};
         private static readonly Type[] _emptyTypeArray = new Type[]{};
         private static readonly TypeInfo _ICommandResultTypeInfo =
-            typeof(ICommandResult).GetTypeInfo();
+            typeof(IResult).GetTypeInfo();
         private static readonly TypeInfo _ModuleBaseTypeInfo =
             typeof(ModuleBase<TContext>).GetTypeInfo();
 
         private static readonly ConcurrentDictionary<Type,
-            Func<Task, ICommandResult>> _getResultMap =
-                new ConcurrentDictionary<Type, Func<Task, ICommandResult>>();
+            Func<Task, IResult>> _getResultMap =
+                new ConcurrentDictionary<Type, Func<Task, IResult>>();
 
         public static bool IsValidModuleDefinition(TypeInfo type)
         {
@@ -94,38 +94,46 @@ namespace Wumpus.Commands
 
             var onExecuting = GetOnExecutingCallback(method.DeclaringType);
 
-            return async (command, services, arguments) =>
+            return async (command, context, services, arguments) =>
             {
-                var module = factory(services, _emptyObjectArray) as IModule;
+                var module = factory(services, _emptyObjectArray)
+                    as ModuleBase<TContext>;
+
+                module.SetContext(context);
 
                 if (onExecuting != null)
                     onExecuting(module, command);
 
-                var boxedResult = method.Invoke(module, arguments);
-                ICommandResult result = SuccessResult.Instance;
-
-                if (boxedResult is Task task)
+                try
                 {
-                    await task;
-                    TryGetResult(task, ref result);
+                    var boxedResult = method.Invoke(module, arguments);
+                    IResult result = SuccessResult.Instance;
+
+                    if (boxedResult is Task task)
+                    {
+                        await task;
+                        TryGetResult(task, ref result);
+                    }
+
+                    return result;
                 }
-
-                if (module is IDisposable disposable)
-                    disposable.Dispose();
-
-                return result;
+                finally
+                {
+                    if (module is IDisposable disposable)
+                        disposable.Dispose();
+                }
             };
         }
 
-        private static void TryGetResult(Task task, ref ICommandResult result)
+        private static void TryGetResult(Task task, ref IResult result)
         {
-            Func<Task, ICommandResult> CreateGetterLambda(Type type)
+            Func<Task, IResult> CreateGetterLambda(Type type)
             {
                 var prop = type.GetProperty("Result")
                     .GetGetMethod();
 
                 // TODO: find a delegate for this instead of relying on Invoke
-                return x => (ICommandResult)prop.Invoke(x, _emptyObjectArray);
+                return x => (IResult)prop.Invoke(x, _emptyObjectArray);
             }
 
             bool IsTaskReturningICommandResult(Type type)
@@ -142,7 +150,7 @@ namespace Wumpus.Commands
                 var getter = _getResultMap.GetOrAdd(taskType,
                     CreateGetterLambda);
 
-                result = getter(task) as ICommandResult;
+                result = getter(task) as IResult;
             }
         }
 

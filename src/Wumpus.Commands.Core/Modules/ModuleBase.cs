@@ -1,12 +1,13 @@
 namespace Wumpus.Commands
 {
     public abstract class ModuleBase<TContext>
-        : IModule<TContext>
         where TContext : ICommandContext
     {
-        public TContext Context { get; }
+        public TContext Context { get; private set; }
 
-        ICommandContext IModule.Context
-            => Context;
+        internal void SetContext(ICommandContext context)
+        {
+            Context = (TContext)context;
+        }
     }
 }

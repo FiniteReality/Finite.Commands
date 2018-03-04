@@ -16,10 +16,6 @@ namespace Wumpus.Commands
         private readonly ModuleInfo _module;
 
         /// <summary>
-        /// The callback to invoke when executing the command
-        /// </summary>
-        public CommandCallback Callback => _callback;
-        /// <summary>
         /// A collection of attributes applied to the command
         /// </summary>
         public IReadOnlyCollection<Attribute> Attributes => _attributes;
@@ -47,11 +43,13 @@ namespace Wumpus.Commands
         /// Executes the command.
         /// </summary>
         /// <param name="services">The service container to use for instanciating services</param>
+        /// <param name="context">The context to use for this command.</param>
         /// <param name="args">Any required arguments to <see cref="Callback"/>.</param>
         /// <returns>Any useful information after executing the command.</returns>
-        public async Task<ICommandResult> ExecuteAsync(IServiceProvider services, params object[] args)
+        internal async Task<IResult> ExecuteAsync(
+            ICommandContext context, IServiceProvider services, object[] args)
         {
-            return await Callback(this, services, args)
+            return await _callback(this, context, services, args)
                 .ConfigureAwait(false);
         }
     }

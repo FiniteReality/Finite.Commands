@@ -7,6 +7,8 @@ namespace Wumpus.Commands.Tests
 {
     public class ClassBuilderTests
     {
+        private static TestContext Context = new TestContext();
+
         [Fact]
         public void IsValidModule()
         {
@@ -32,10 +34,9 @@ namespace Wumpus.Commands.Tests
             Assert.Equal("derp", Assert.Single(cmd.Aliases));
             Assert.Empty(cmd.Attributes);
             Assert.Equal(module, cmd.Module);
-            Assert.NotNull(cmd.Callback);
 
-            var result = cmd.Callback(null, null, new object[]{})
-                .GetAwaiter().GetResult();
+            var result = cmd.ExecuteAsync(Context, null, new object[]{})
+                    .GetAwaiter().GetResult();
 
             Assert.NotNull(result);
             Assert.True(result.IsSuccess);
@@ -49,7 +50,7 @@ namespace Wumpus.Commands.Tests
 
             foreach (var cmd in module.Commands)
             {
-                var result = cmd.Callback(null, null, new object[]{})
+                var result = cmd.ExecuteAsync(Context, null, new object[]{})
                     .GetAwaiter().GetResult();
 
                 switch (cmd.Aliases.First())
@@ -78,7 +79,7 @@ namespace Wumpus.Commands.Tests
         public string Author { get; set; }
     }
 
-    internal class TestResult : ICommandResult
+    internal class TestResult : IResult
     {
         public bool IsSuccess
             => false;
@@ -95,8 +96,8 @@ namespace Wumpus.Commands.Tests
             => Task.CompletedTask;
 
         [Command("Task<ICommandResult>")]
-        public Task<ICommandResult> TestCommandReturningTaskICommandResult()
-            => Task.FromResult<ICommandResult>(null);
+        public Task<IResult> TestCommandReturningTaskICommandResult()
+            => Task.FromResult<IResult>(null);
 
         [Command("Task<TestResult>")]
         public Task<TestResult>
