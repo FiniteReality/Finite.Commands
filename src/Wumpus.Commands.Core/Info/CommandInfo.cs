@@ -52,5 +52,10 @@ namespace Wumpus.Commands
             return await _callback(this, context, services, args)
                 .ConfigureAwait(false);
         }
+
+        internal Task<IResult> ExecuteAsync(
+            CommandExecutionContext context)
+            => ExecuteAsync(context.Context, context.ServiceProvider,
+                context.Arguments);
     }
 }

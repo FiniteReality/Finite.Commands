@@ -24,10 +24,7 @@ namespace Wumpus.Commands
             _parser = new DefaultCommandParser();
         }
 
-        /// <summary>
-        /// Loads a module with the same context as this command service
-        /// </summary>
-        /// <returns>The loaded module, if successful</returns>
+
         public ModuleInfo LoadModule<TModule>()
             where TModule : ModuleBase<TContext>
         {
@@ -81,42 +78,33 @@ namespace Wumpus.Commands
                 _pipelines.Add(pipeline);
         }
 
-        /// <summary>
-        /// Finds all commands with the given prefix
-        /// </summary>
-        /// <param name="commandSegments">The tokenized command prefix to search for</param>
-        /// <returns>All possible commands that could be selected along with their arguments</returns>
+
         public IEnumerable<CommandMatch> FindCommands(string[] commandSegments)
             => _commandMap.GetCommands(commandSegments);
 
-        public Task<ParseResult> ParseMessage(string message)
+        public Task<ParseResult> ParseMessageAsync(string message)
             => _parser.ParseAsync<TContext>(this, message);
 
-        /// <summary>
-        /// Executes a command
-        /// </summary>
-        /// <param name="command">The command to execute</param>
-        /// <param name="context">The context to provide to the command</param>
-        /// <param name="arguments">Arguments to the command</param>
-        /// <param name="services">The service provider used for dependency injection</param>
-        /// <returns>A task representing the command's execution</returns>
+        
         public async Task<IResult> ExecuteAsync(
             CommandInfo command,
             TContext context,
             object[] arguments,
             IServiceProvider services = null)
         {
-            PipelineFunc GetPipelineFunc(int pos)
+            var execContext = new CommandExecutionContext(
+                command, context, services, arguments);
+
+            Func<Task<IResult>> GetPipelineFunc(
+                CommandExecutionContext ctx, int pos)
             {
                 if (pos >= _pipelines.Count)
-                    return (cmd, ctx, s, a) => cmd.ExecuteAsync(ctx, s, a);
+                    return () => ctx.Command.ExecuteAsync(ctx);
 
-                return (cmd, ctx, s, a) => _pipelines[pos](cmd, ctx, s, a,
-                    () => GetPipelineFunc(pos + 1)(cmd, ctx, s, a));
+                return () => _pipelines[pos](ctx, GetPipelineFunc(ctx, pos+1));
             }
 
-            return await GetPipelineFunc(0)(command, context, services,
-                arguments);
+            return await GetPipelineFunc(execContext, 0)();
         }
     }
 }

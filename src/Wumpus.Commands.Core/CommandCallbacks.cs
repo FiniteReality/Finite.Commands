@@ -21,11 +21,5 @@ namespace Wumpus.Commands
     public delegate void OnExecutingCallback(CommandInfo command);
 
     public delegate Task<IResult> PipelineCallback(
-        CommandInfo command, ICommandContext context,
-        IServiceProvider services, object[] arguments,
-        Func<Task<IResult>> next);
-
-    internal delegate Task<IResult> PipelineFunc(
-        CommandInfo command, ICommandContext context,
-        IServiceProvider services, object[] arguments);
+        CommandExecutionContext context, Func<Task<IResult>> next);
 }
