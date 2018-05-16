@@ -4,9 +4,8 @@ namespace Wumpus.Commands
 {
     public interface ICommandParser
     {
-        Task<ParseResult> ParseAsync<TContext>(
-            CommandService<TContext> commands,
-            string commandText)
+        Task ParseAsync<TContext>(
+            CommandExecutionContext executionContext)
             where TContext : class, ICommandContext<TContext>;
     }
 }

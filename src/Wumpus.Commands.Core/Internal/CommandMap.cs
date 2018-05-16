@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.Linq;
 
 namespace Wumpus.Commands
@@ -8,9 +7,39 @@ namespace Wumpus.Commands
     {
         private readonly CommandMapNode _root;
 
-        public CommandMap()
+        public CommandMap(IReadOnlyList<ModuleInfo> modules = null)
         {
             _root = new CommandMapNode();
+
+            void AddCommands(ModuleInfo module, Stack<string> path)
+            {
+                foreach (var moduleAlias in module.Aliases)
+                {
+                    path.Push(moduleAlias);
+
+                    foreach (var command in module.Commands)
+                    {
+                        foreach (var alias in command.Aliases)
+                        {
+                            path.Push(alias);
+                            AddCommand(path.ToArray(), command);
+                            path.Pop();
+                        }
+                    }
+
+                    foreach (var submodule in module.Submodules)
+                        AddCommands(submodule, path);
+
+                    path.Pop();
+                }
+            }
+
+            if (modules != null)
+            {
+                Stack<string> pathStack = new Stack<string>();
+                foreach (var module in modules)
+                    AddCommands(module, pathStack);
+            }
         }
 
         public IEnumerable<CommandMatch> GetCommands(string[] commandPath)
@@ -24,16 +53,13 @@ namespace Wumpus.Commands
 
         private class CommandMapNode
         {
-            private readonly ConcurrentDictionary<string, CommandInfo>
-                _commands;
-            private readonly ConcurrentDictionary<string, CommandMapNode>
-                _nodes;
+            private readonly Dictionary<string, CommandInfo> _commands;
+            private readonly Dictionary<string, CommandMapNode> _nodes;
 
             public CommandMapNode()
             {
-                _commands
-                    = new ConcurrentDictionary<string, CommandInfo>();
-                _nodes = new ConcurrentDictionary<string, CommandMapNode>();
+                _commands = new Dictionary<string, CommandInfo>();
+                _nodes = new Dictionary<string, CommandMapNode>();
             }
 
             public IEnumerable<CommandMatch> FindCommands(string[] segments,

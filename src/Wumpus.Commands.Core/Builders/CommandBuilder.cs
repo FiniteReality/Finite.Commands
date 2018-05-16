@@ -15,6 +15,7 @@ namespace Wumpus.Commands
         private readonly List<string> _aliases;
         // Attributes of the command
         private readonly List<Attribute> _attributes;
+        private readonly List<ParameterBuilder> _parameters;
 
         /// <summary>
         /// A collection of aliases applied to the <see cref="CommandInfo"/>.
@@ -29,18 +30,25 @@ namespace Wumpus.Commands
             => _attributes.AsReadOnly();
 
         /// <summary>
+        /// A collection of parameters passed to this command.
+        /// </summary>
+        public IReadOnlyCollection<ParameterBuilder> Parameters
+            => _parameters.AsReadOnly();
+
+        /// <summary>
         /// The callback of the created <see cref="CommandInfo"/>.
         /// </summary>
         public CommandCallback Callback { get; set; }
 
         /// <summary>
-        /// Creates a new CommandBuilder with the specified callback.
+        /// Creates a new <see cref="CommandBuilder"/> with the specified callback.
         /// </summary>
-        /// <param name="callback">The callback which is executed whe command is invoked.</param>
-        public CommandBuilder(CommandCallback callback)
+        /// <param name="callback">The callback which is executed when the command is invoked.</param>
+        internal CommandBuilder(CommandCallback callback)
         {
             _aliases = new List<string>();
             _attributes = new List<Attribute>();
+            _parameters = new List<ParameterBuilder>();
 
             Callback = callback;
         }
@@ -68,6 +76,17 @@ namespace Wumpus.Commands
         }
 
         /// <summary>
+        /// Adds a parameter to the created <see cref="CommandInfo"/>.
+        /// </summary>
+        /// <param name="parameter">The parameter to add</param>
+        /// <returns>The current instance, for chaining calls</returns>
+        public CommandBuilder AddParameter(ParameterBuilder parameter)
+        {
+            _parameters.Add(parameter);
+            return this;
+        }
+
+        /// <summary>
         /// Sets the callback of the created <see cref="CommandInfo"/>.
         /// </summary>
         /// <param name="callback">The new callback to use</param>
@@ -87,7 +106,8 @@ namespace Wumpus.Commands
 
         internal CommandInfo Build(ModuleInfo module)
         {
-            return new CommandInfo(module, Callback, Attributes, Aliases);
+            return new CommandInfo(module, Callback,
+                Aliases, Attributes, Parameters);
         }
     }
 }

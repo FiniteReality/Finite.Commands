@@ -13,8 +13,10 @@ namespace Wumpus.Commands.Tests
         void AddRemove(params string[] path)
         {
             var map = new CommandMap();
-            var testCommand = new CommandInfo(null, null, null, null);
-            var testCommand2 = new CommandInfo(null, null, null, null);
+            var testCommand = new CommandInfo(null, null, null, null,
+                Array.Empty<ParameterBuilder>());
+            var testCommand2 = new CommandInfo(null, null, null, null,
+                Array.Empty<ParameterBuilder>());
 
             Assert.True(map.AddCommand(path, testCommand));
             Assert.False(map.AddCommand(path, testCommand2));
@@ -39,8 +41,10 @@ namespace Wumpus.Commands.Tests
             string[] searchPath, string[] invalidSearchPath)
         {
             var map = new CommandMap();
-            var testCommand = new CommandInfo(null, null, null, null);
-            var testCommand2 = new CommandInfo(null, null, null, null);
+            var testCommand = new CommandInfo(null, null, null, null,
+                Array.Empty<ParameterBuilder>());
+            var testCommand2 = new CommandInfo(null, null, null, null,
+                Array.Empty<ParameterBuilder>());
 
             Assert.True(map.AddCommand(command1Path, testCommand));
             Assert.True(map.AddCommand(command2Path, testCommand2));

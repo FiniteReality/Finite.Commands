@@ -11,10 +11,10 @@ namespace Wumpus.Commands
     {
         // Prefixes that this module adds to a command
         private readonly List<string> _aliases;
-        // Submodules of this module
-        private readonly List<ModuleBuilder> _submodules;
         // Attributes of this module
         private readonly List<Attribute> _attributes;
+        // Submodules of this module
+        private readonly List<ModuleBuilder> _submodules;
         // Commands of this module
         private readonly List<CommandBuilder> _commands;
 
@@ -25,16 +25,16 @@ namespace Wumpus.Commands
             => _aliases.AsReadOnly();
 
         /// <summary>
-        /// A collection of submodules contained by this module.
-        /// </summary>
-        public IReadOnlyCollection<ModuleBuilder> Submodules
-            => _submodules.AsReadOnly();
-
-        /// <summary>
         /// A collection of attributes applied to this command.
         /// </summary>
         public IReadOnlyCollection<Attribute> Attributes
             => _attributes.AsReadOnly();
+
+        /// <summary>
+        /// A collection of submodules contained by this module.
+        /// </summary>
+        public IReadOnlyCollection<ModuleBuilder> Submodules
+            => _submodules.AsReadOnly();
 
         public IReadOnlyCollection<CommandBuilder> Commands
             => _commands.AsReadOnly();
@@ -51,7 +51,7 @@ namespace Wumpus.Commands
         }
 
         /// <summary>
-        /// Adds aliases to the created Module
+        /// Adds aliases to the created <see cref="ModuleInfo"/>.
         /// </summary>
         /// <param name="aliases">The new aliases to add</param>
         /// <returns>The current instance, for chaining calls</returns>
@@ -73,7 +73,7 @@ namespace Wumpus.Commands
         }
 
         /// <summary>
-        /// Adds an attribute to the created Module.
+        /// Adds an attribute to the created <see cref="ModuleInfo"/>.
         /// </summary>
         /// <param name="attribute">The attribute to add</param>
         /// <returns>The current instance, for chaining calls</returns>
@@ -84,7 +84,7 @@ namespace Wumpus.Commands
         }
 
         /// <summary>
-        /// Adds a command to the created Module.
+        /// Adds a command to the created <see cref="ModuleInfo"/>.
         /// </summary>
         /// <param name="command">The command to add</param>
         /// <returns>The current instance, for chaining calls</returns>
@@ -103,7 +103,8 @@ namespace Wumpus.Commands
 
         internal ModuleInfo Build(ModuleInfo parent)
         {
-            return new ModuleInfo(parent, Aliases, Attributes, Submodules, Commands);
+            return new ModuleInfo(parent,
+                Aliases, Attributes, Submodules, Commands);
         }
     }
 }

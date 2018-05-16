@@ -11,8 +11,6 @@ namespace Wumpus.Commands
     internal class ClassBuilder<TContext>
         where TContext : class, ICommandContext
     {
-        private static readonly object[] _emptyObjectArray = new object[]{};
-        private static readonly Type[] _emptyTypeArray = new Type[]{};
         private static readonly TypeInfo _ICommandResultTypeInfo =
             typeof(IResult).GetTypeInfo();
         private static readonly TypeInfo _ModuleBaseTypeInfo =
@@ -84,19 +82,46 @@ namespace Wumpus.Commands
                         break;
                 }
 
+            foreach (var parameter in method.GetParameters())
+                builder.AddParameter(BuildParameter(parameter));
+
+            return builder;
+        }
+
+        private static ParameterBuilder BuildParameter(
+            System.Reflection.ParameterInfo parameter)
+        {
+            var builder = new ParameterBuilder(parameter.Name);
+            var attributes = parameter.GetCustomAttributes();
+
+            builder.WithType(parameter.ParameterType);
+
+            foreach (var attribute in attributes)
+            {
+                switch (attribute)
+                {
+                    case AliasAttribute aliases:
+                        builder.AddAliases(aliases.Aliases);
+                        break;
+                    default:
+                        builder.AddAttribute(attribute);
+                        break;
+                }
+            }
+
             return builder;
         }
 
         private static CommandCallback CreateCallback(MethodInfo method)
         {
             var factory = ActivatorUtilities
-                .CreateFactory(method.DeclaringType, _emptyTypeArray);
+                .CreateFactory(method.DeclaringType, Array.Empty<Type>());
 
             var onExecuting = GetOnExecutingCallback(method.DeclaringType);
 
             return async (command, context, services, arguments) =>
             {
-                var module = factory(services, _emptyObjectArray)
+                var module = factory(services, Array.Empty<object>())
                     as ModuleBase<TContext>;
 
                 module.SetContext(context);
@@ -133,7 +158,7 @@ namespace Wumpus.Commands
                     .GetGetMethod();
 
                 // TODO: find a delegate for this instead of relying on Invoke
-                return x => (IResult)prop.Invoke(x, _emptyObjectArray);
+                return x => (IResult)prop.Invoke(x, Array.Empty<object>());
             }
 
             bool IsTaskReturningICommandResult(Type type)

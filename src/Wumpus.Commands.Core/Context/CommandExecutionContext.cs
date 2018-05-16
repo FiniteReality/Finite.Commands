@@ -1,24 +1,24 @@
 using System;
+using System.Collections.Generic;
 
 namespace Wumpus.Commands
 {
     public sealed class CommandExecutionContext
     {
-        public CommandInfo Command { get; }
+        public ICommandService CommandService { get; }
+        public CommandInfo Command { get; set; }
         public ICommandContext Context { get; }
         public IServiceProvider ServiceProvider { get; }
-        public object[] Arguments { get; }
+        public object[] Arguments { get; set; }
 
         internal CommandExecutionContext(
-            CommandInfo command,
+            ICommandService commands,
             ICommandContext context,
-            IServiceProvider services,
-            object[] arguments)
+            IServiceProvider services)
         {
-            Command = command;
+            CommandService = commands;
             Context = context;
             ServiceProvider = services;
-            Arguments = arguments;
         }
     }
 }

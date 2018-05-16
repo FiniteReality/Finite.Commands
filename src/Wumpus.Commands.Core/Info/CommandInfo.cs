@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,32 +12,47 @@ namespace Wumpus.Commands
     public class CommandInfo
     {
         private readonly CommandCallback _callback;
-        private readonly IReadOnlyCollection<Attribute> _attributes;
         private readonly IReadOnlyCollection<string> _aliases;
+        private readonly IReadOnlyCollection<Attribute> _attributes;
+        private readonly IReadOnlyCollection<ParameterInfo> _parameters;
         private readonly ModuleInfo _module;
 
-        /// <summary>
-        /// A collection of attributes applied to the command
-        /// </summary>
-        public IReadOnlyCollection<Attribute> Attributes => _attributes;
         /// <summary>
         /// A collection of aliases used to invoke the command
         /// </summary>
         public IReadOnlyCollection<string> Aliases => _aliases;
         /// <summary>
-        /// The parent module of this command.
+        /// A collection of attributes applied to the command
+        /// </summary>
+        public IReadOnlyCollection<Attribute> Attributes => _attributes;
+        /// <summary>
+        /// A collection of parameters passed to the command
+        /// </summary>
+        public IReadOnlyCollection<ParameterInfo> Parameters => _parameters;
+        /// <summary>
+        /// The parent module of this command
         /// </summary>
         public ModuleInfo Module => _module;
 
         internal CommandInfo(ModuleInfo module,
             CommandCallback callback,
+            IReadOnlyCollection<string> aliases,
             IReadOnlyCollection<Attribute> attributes,
-            IReadOnlyCollection<string> aliases)
+            IReadOnlyCollection<ParameterBuilder> parameters)
         {
             _callback = callback;
-            _attributes = attributes;
             _aliases = aliases;
+            _attributes = attributes;
+
             _module = module;
+
+            var builtParameters = ImmutableArray.CreateBuilder<ParameterInfo>(parameters.Count);
+            foreach (var parameter in parameters)
+            {
+                builtParameters.Add(parameter.Build(this));
+            }
+
+            _parameters = builtParameters.ToImmutable();
         }
 
         /// <summary>
