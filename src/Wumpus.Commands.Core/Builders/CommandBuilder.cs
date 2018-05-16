@@ -44,7 +44,7 @@ namespace Wumpus.Commands
         /// Creates a new <see cref="CommandBuilder"/> with the specified callback.
         /// </summary>
         /// <param name="callback">The callback which is executed when the command is invoked.</param>
-        internal CommandBuilder(CommandCallback callback)
+        public CommandBuilder(CommandCallback callback)
         {
             _aliases = new List<string>();
             _attributes = new List<Attribute>();
