@@ -11,34 +11,40 @@ namespace Wumpus.Commands
         {
             _root = new CommandMapNode();
 
-            void AddCommands(ModuleInfo module, Stack<string> path)
+            void AddCommandsForModule(ModuleInfo module, Stack<string> path)
             {
-                foreach (var moduleAlias in module.Aliases)
+                foreach (var command in module.Commands)
                 {
-                    path.Push(moduleAlias);
-
-                    foreach (var command in module.Commands)
+                    foreach (var alias in command.Aliases)
                     {
-                        foreach (var alias in command.Aliases)
-                        {
-                            path.Push(alias);
-                            AddCommand(path.ToArray(), command);
-                            path.Pop();
-                        }
+                        path.Push(alias);
+                        AddCommand(path.ToArray(), command);
+                        path.Pop();
                     }
-
-                    foreach (var submodule in module.Submodules)
-                        AddCommands(submodule, path);
-
-                    path.Pop();
                 }
+
+                foreach (var submodule in module.Submodules)
+                    AddModule(submodule, path);
+            }
+
+            void AddModule(ModuleInfo module, Stack<string> path)
+            {
+                if (module.Aliases.Count == 0)
+                    AddCommandsForModule(module, path);
+                else
+                    foreach (var moduleAlias in module.Aliases)
+                    {
+                        path.Push(moduleAlias);
+                        AddCommandsForModule(module, path);
+                        path.Pop();
+                    }
             }
 
             if (modules != null)
             {
                 Stack<string> pathStack = new Stack<string>();
                 foreach (var module in modules)
-                    AddCommands(module, pathStack);
+                    AddModule(module, pathStack);
             }
         }
 
@@ -65,10 +71,12 @@ namespace Wumpus.Commands
             public IEnumerable<CommandMatch> FindCommands(string[] segments,
                 int startIndex)
             {
+                if (startIndex >= segments.Length)
+                    yield break;
+
                 var segment = segments[startIndex];
 
-                if (startIndex < segment.Length - 1 &&
-                    _nodes.TryGetValue(segment, out var node))
+                if (_nodes.TryGetValue(segment, out var node))
                 {
                     var commands = node.FindCommands(segments,
                         startIndex + 1);

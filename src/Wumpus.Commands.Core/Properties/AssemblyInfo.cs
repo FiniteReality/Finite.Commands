@@ -1,3 +1,3 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("CommandTests")]
+[assembly: InternalsVisibleTo("Wumpus.Commands.Core.Tests")]

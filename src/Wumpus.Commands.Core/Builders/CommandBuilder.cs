@@ -18,13 +18,15 @@ namespace Wumpus.Commands
         private readonly List<ParameterBuilder> _parameters;
 
         /// <summary>
-        /// A collection of aliases applied to the <see cref="CommandInfo"/>.
+        /// A collection of aliases applied to the
+        /// <see cref="CommandInfo"/>.
         /// </summary>
         public IReadOnlyCollection<string> Aliases
             => _aliases.AsReadOnly();
 
         /// <summary>
-        /// A collection of attributes applied to the <see cref="CommandInfo"/>.
+        /// A collection of attributes applied to the
+        /// <see cref="CommandInfo"/>.
         /// </summary>
         public IReadOnlyCollection<Attribute> Attributes
             => _attributes.AsReadOnly();
@@ -41,9 +43,12 @@ namespace Wumpus.Commands
         public CommandCallback Callback { get; set; }
 
         /// <summary>
-        /// Creates a new <see cref="CommandBuilder"/> with the specified callback.
+        /// Creates a new <see cref="CommandBuilder"/> with the specified
+        /// callback.
         /// </summary>
-        /// <param name="callback">The callback which is executed when the command is invoked.</param>
+        /// <param name="callback">
+        /// The callback which is executed when the command is invoked.
+        /// </param>
         public CommandBuilder(CommandCallback callback)
         {
             _aliases = new List<string>();
@@ -56,8 +61,11 @@ namespace Wumpus.Commands
         /// <summary>
         /// Adds aliases to the created <see cref="CommandInfo"/>.
         /// </summary>
-        /// <param name="aliases">The new aliases to add</param>
-        /// <returns>The current instance, for chaining calls</returns>
+        /// <param name="aliases">
+        /// The new aliases to add.
+        /// </param>
+        /// <returns>
+        /// The current instance, for chaining calls.</returns>
         public CommandBuilder AddAliases(params string[] aliases)
         {
             _aliases.AddRange(aliases);
@@ -67,8 +75,12 @@ namespace Wumpus.Commands
         /// <summary>
         /// Adds an attribute to the created <see cref="CommandInfo"/>.
         /// </summary>
-        /// <param name="attribute">The attribute to add</param>
-        /// <returns>The current instance, for chaining calls</returns>
+        /// <param name="attribute">
+        /// The attribute to add.
+        /// </param>
+        /// <returns>
+        /// The current instance, for chaining calls.
+        /// </returns>
         public CommandBuilder AddAttribute(Attribute attribute)
         {
             _attributes.Add(attribute);
@@ -78,8 +90,11 @@ namespace Wumpus.Commands
         /// <summary>
         /// Adds a parameter to the created <see cref="CommandInfo"/>.
         /// </summary>
-        /// <param name="parameter">The parameter to add</param>
-        /// <returns>The current instance, for chaining calls</returns>
+        /// <param name="parameter">
+        /// The parameter to add.
+        /// </param>
+        /// <returns>
+        /// The current instance, for chaining calls.</returns>
         public CommandBuilder AddParameter(ParameterBuilder parameter)
         {
             _parameters.Add(parameter);
@@ -89,8 +104,12 @@ namespace Wumpus.Commands
         /// <summary>
         /// Sets the callback of the created <see cref="CommandInfo"/>.
         /// </summary>
-        /// <param name="callback">The new callback to use</param>
-        /// <returns>The current instance, for chaining calls</returns>
+        /// <param name="callback">
+        /// The new callback to use.
+        /// </param>
+        /// <returns>
+        /// The current instance, for chaining calls.
+        /// </returns>
         public CommandBuilder WithCallback(CommandCallback callback)
         {
             Callback = callback;
@@ -98,9 +117,12 @@ namespace Wumpus.Commands
         }
 
         /// <summary>
-        /// Builds a <see cref="CommandInfo"/> object with the given properties.
+        /// Builds a <see cref="CommandInfo"/> object with the given
+        /// properties.
         /// </summary>
-        /// <returns>The built command.</returns>
+        /// <returns>
+        /// The built command.
+        /// </returns>
         public CommandInfo Build()
             => Build(null);
 

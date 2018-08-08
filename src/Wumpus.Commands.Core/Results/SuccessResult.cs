@@ -8,6 +8,7 @@ namespace Wumpus.Commands
         public static readonly SuccessResult Instance
             = new SuccessResult();
 
+        /// <inheritdoc/>
         public bool IsSuccess
             => true;
     }

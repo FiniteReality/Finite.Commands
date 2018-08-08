@@ -9,52 +9,160 @@ namespace Wumpus.Commands
         private enum TokenizerState
         {
             Normal,
-            QuotedString,
-        };
+            EscapeCharacter,
+            ParameterSeparator,
+            QuotedString
+        }
 
-        public virtual bool IsQuoteCharacter(char quoteCharacter)
+        /// <summary>
+        /// Checks whether the given character is a quotation character, used
+        /// to delimit quoted strings.
+        /// </summary>
+        /// <param name="quoteCharacter">
+        /// The character to check.
+        /// </param>
+        /// <returns>
+        /// <code>true</code> when the parameter is a quotation character.
+        /// </returns>
+        protected virtual bool IsQuoteCharacter(char quoteCharacter)
         {
             return quoteCharacter == '\'' || quoteCharacter == '"';
         }
 
-        public virtual bool IsQuotedParameter(string parameter)
+        /// <summary>
+        /// Checks whether the given quotations are valid quotation characters
+        /// for long strings in parameters.
+        /// </summary>
+        /// <param name="startQuote">
+        /// The start quote to check.
+        /// </param>
+        /// <param name="endQuote">
+        /// The end quote to check.
+        /// </param>
+        /// <returns>
+        /// <code>true</code> when the quotes correspond to a valid long string
+        /// parameter.
+        /// </returns>
+        protected virtual bool IsCompletedQuote(char startQuote,
+            char endQuote)
         {
-            return (parameter.StartsWith("\"") && parameter.EndsWith("\"") ||
-                parameter.StartsWith("'") && parameter.EndsWith("'"));
+            return (startQuote == endQuote) &&
+                (startQuote == '\'' || startQuote == '"');
         }
 
-        public virtual string[] Tokenize(string commandText)
+        /// <summary>
+        /// Checks whether the given character is an escape character.
+        /// </summary>
+        /// <param name="escapeCharacter">
+        /// The character to check.
+        /// </param>
+        /// <returns>
+        /// <code>true</code> when the character is an escape character.
+        /// </returns>
+        protected virtual bool IsEscapeCharacter(char escapeCharacter)
+            => escapeCharacter == '\\';
+
+        /// <summary>
+        /// Checks whether the given character is an escapable character.
+        /// </summary>
+        /// <param name="escapedCharacter">
+        /// The character to check.
+        /// </param>
+        /// <returns>
+        /// <code>true</code> when the character is an escapable character.
+        /// </returns>
+        protected virtual bool IsEscapableCharacter(char escapedCharacter)
+            => IsQuoteCharacter(escapedCharacter);
+
+
+        /// <summary>
+        /// Tokenizes a command string into a list of command segments.
+        /// </summary>
+        /// <param name="commandText">
+        /// The command text to tokenize.
+        /// </param>
+        /// <returns>
+        /// An array of strings representing the individual tokens contained in
+        /// <paramref name="commandText"/>.
+        /// </returns>
+        protected virtual string[] Tokenize(string commandText)
         {
             var paramBuilder = new StringBuilder();
             var result = new List<string>();
             var state = TokenizerState.Normal;
+            var beginQuote = default(char);
 
-            foreach (char c in commandText)
+            for (int i = 0; i < commandText.Length; i++)
             {
-                paramBuilder.Append(c);
+                char c = commandText[i];
+                var isLastCharacter = i == commandText.Length - 1;
+
                 switch (state)
                 {
-                    case TokenizerState.Normal when char.IsWhiteSpace(c):
+                    case TokenizerState.Normal
+                        when char.IsWhiteSpace(c):
                         result.Add(paramBuilder.ToString());
-                        paramBuilder.Clear();
+                        state = TokenizerState.ParameterSeparator;
                         break;
-                    case TokenizerState.Normal when IsQuoteCharacter(c):
-                        state = TokenizerState.QuotedString;
+                    case TokenizerState.Normal
+                        when IsEscapeCharacter(c) && isLastCharacter:
+                        throw new TokenizerException(
+                            "An escape sequence was left unfinished",
+                            commandText, i);
+                    case TokenizerState.Normal
+                        when IsEscapeCharacter(c):
+                        state = TokenizerState.EscapeCharacter;
                         break;
-                    case TokenizerState.QuotedString when IsQuoteCharacter(c)
-                        && IsQuotedParameter(paramBuilder.ToString()):
 
+                    case TokenizerState.EscapeCharacter
+                        when IsEscapableCharacter(c):
+                        goto default;
+                    case TokenizerState.EscapeCharacter:
+                        throw new TokenizerException(
+                            $"The character '{c}' cannot be escaped",
+                            commandText, i);
+
+                    case TokenizerState.ParameterSeparator
+                        when IsQuoteCharacter(c) && isLastCharacter:
+                        throw new TokenizerException(
+                            "A quoted string was not finished",
+                            commandText, i);
+                    case TokenizerState.ParameterSeparator
+                        when IsQuoteCharacter(c):
+                        state = TokenizerState.QuotedString;
+                        beginQuote = c;
+                        break;
+                    case TokenizerState.ParameterSeparator
+                        when !char.IsWhiteSpace(c):
                         state = TokenizerState.Normal;
-                        result.Add(paramBuilder.ToString()
-                            .Substring(1, paramBuilder.Length - 2));
                         paramBuilder.Clear();
+                        goto default;
+
+                    case TokenizerState.QuotedString
+                        when IsCompletedQuote(beginQuote, c):
+                        state = TokenizerState.Normal;
+                        break;
+                    case TokenizerState.QuotedString
+                        when isLastCharacter:
+                        throw new TokenizerException(
+                            "A quoted string was not finished",
+                            commandText, i);
+
+                    default:
+                        paramBuilder.Append(c);
                         break;
                 }
             }
 
+            // Add any final parameters
+            result.Add(paramBuilder.ToString());
+
             if (state != TokenizerState.Normal)
             {
-                throw new InvalidOperationException("Parse failed: bad state");
+                throw new TokenizerException(
+                    "The tokenizer did not finish in the " +
+                    $"{nameof(TokenizerState.Normal)} state.",
+                    commandText, commandText.Length);
             }
 
             return result.ToArray();

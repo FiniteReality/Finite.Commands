@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 
 namespace Wumpus.Commands
 {
+    /// <summary>
+    /// A service for parsing and executing commands in chat messages.
+    /// </summary>
+    /// <typeparam name="TContext">
+    /// The command context to use.
+    /// </typeparam>
     public class CommandService<TContext> : ICommandService
         where TContext : class, ICommandContext<TContext>
     {
@@ -26,11 +32,26 @@ namespace Wumpus.Commands
             _parser = new DefaultCommandParser();
         }
 
-        public IEnumerable<CommandMatch> FindCommands(string[] path)
+        /// <inheritdoc/>
+        public IEnumerable<CommandMatch> FindCommands(string[] fullPath)
         {
-            return _commandMap.GetCommands(path);
+            return _commandMap.GetCommands(fullPath);
         }
 
+        /// <summary>
+        /// Executes any stored pipelines on a context, returning any result
+        /// they produce.
+        /// </summary>
+        /// <param name="context">
+        /// The contextual message data to execute pipelines on.
+        /// </param>
+        /// <param name="services">
+        /// A provider for services used to create modules based on their
+        /// dependencies.
+        /// </param>
+        /// <returns>
+        /// A <see cref="IResult"/> produced somewhere in the pipeline chain.
+        /// </returns>
         public async Task<IResult> ExecuteAsync(
             TContext context, IServiceProvider services)
         {
@@ -61,6 +82,7 @@ namespace Wumpus.Commands
                 .ConfigureAwait(false);
         }
 
+        /// <inheritdoc/>
         Task<IResult> ICommandService.ExecuteAsync(ICommandContext context,
             IServiceProvider services)
             => ExecuteAsync(context as TContext, services);

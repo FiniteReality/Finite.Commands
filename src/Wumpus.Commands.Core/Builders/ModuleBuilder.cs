@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace Wumpus.Commands
 {
     /// <summary>
-    /// A builder class for creating Modules.
+    /// A builder class for creating modules.
     /// </summary>
     public class ModuleBuilder
     {
@@ -21,21 +21,40 @@ namespace Wumpus.Commands
         /// <summary>
         /// A collection of aliases applied to this module.
         /// </summary>
+        /// <value>
+        /// The Aliases property gets a collection of aliases applied to the
+        /// current module.
+        /// </value>
         public IReadOnlyCollection<string> Aliases
             => _aliases.AsReadOnly();
 
         /// <summary>
-        /// A collection of attributes applied to this command.
+        /// A collection of attributes applied to this module.
         /// </summary>
+        /// /// <value>
+        /// The Attributes property gets a collection of attributes applied to
+        /// the current module.
+        /// </value>
         public IReadOnlyCollection<Attribute> Attributes
             => _attributes.AsReadOnly();
 
         /// <summary>
         /// A collection of submodules contained by this module.
         /// </summary>
+        /// /// <value>
+        /// The Submodules property gets a collection of submodules contained
+        /// by the current module.
+        /// </value>
         public IReadOnlyCollection<ModuleBuilder> Submodules
             => _submodules.AsReadOnly();
 
+        /// <summary>
+        /// A collection of commands contained by this module.
+        /// </summary>
+        /// <value>
+        /// The Commands property gets a collection of commands contained by
+        /// the current module.
+        /// </value>
         public IReadOnlyCollection<CommandBuilder> Commands
             => _commands.AsReadOnly();
 
@@ -53,8 +72,12 @@ namespace Wumpus.Commands
         /// <summary>
         /// Adds aliases to the created <see cref="ModuleInfo"/>.
         /// </summary>
-        /// <param name="aliases">The new aliases to add</param>
-        /// <returns>The current instance, for chaining calls</returns>
+        /// <param name="aliases">
+        /// The new aliases to add.
+        /// </param>
+        /// <returns>
+        /// The current instance, for chaining calls.
+        /// </returns>
         public ModuleBuilder AddAliases(params string[] aliases)
         {
             _aliases.AddRange(aliases);
@@ -64,8 +87,12 @@ namespace Wumpus.Commands
         /// <summary>
         /// Adds a submodule to the current module builder.
         /// </summary>
-        /// <param name="builder">The module to add as a submodule</param>
-        /// <returns>The current instnace, for chaining calls</returns>
+        /// <param name="builder">
+        /// The module to add as a submodule.
+        /// </param>
+        /// <returns>
+        /// The current instnace, for chaining calls.
+        /// </returns>
         public ModuleBuilder AddSubmodule(ModuleBuilder builder)
         {
             _submodules.Add(builder);
@@ -75,8 +102,12 @@ namespace Wumpus.Commands
         /// <summary>
         /// Adds an attribute to the created <see cref="ModuleInfo"/>.
         /// </summary>
-        /// <param name="attribute">The attribute to add</param>
-        /// <returns>The current instance, for chaining calls</returns>
+        /// <param name="attribute">
+        /// The attribute to add.
+        /// </param>
+        /// <returns>
+        /// The current instance, for chaining calls.
+        /// </returns>
         public ModuleBuilder AddAttribute(Attribute attribute)
         {
             _attributes.Add(attribute);
@@ -86,8 +117,12 @@ namespace Wumpus.Commands
         /// <summary>
         /// Adds a command to the created <see cref="ModuleInfo"/>.
         /// </summary>
-        /// <param name="command">The command to add</param>
-        /// <returns>The current instance, for chaining calls</returns>
+        /// <param name="command">
+        /// The command to add.
+        /// </param>
+        /// <returns>
+        /// The current instance, for chaining calls.
+        /// </returns>
         public ModuleBuilder AddCommand(CommandBuilder command)
         {
             _commands.Add(command);
@@ -97,7 +132,9 @@ namespace Wumpus.Commands
         /// <summary>
         /// Builds the module, including submodules and commands.
         /// </summary>
-        /// <returns>The built module</returns>
+        /// <returns>
+        /// The built module.
+        /// </returns>
         public ModuleInfo Build()
             => Build(null);
 

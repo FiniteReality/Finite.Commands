@@ -5,25 +5,50 @@ using System.Threading.Tasks;
 
 namespace Wumpus.Commands
 {
+    /// <summary>
+    /// Default implementation of <see cref="ICommandParser"/> which can be
+    /// subclassed and overriden to provide enhanced features.
+    /// </summary>
     public partial class DefaultCommandParser : ICommandParser
     {
-        private readonly Dictionary<Type, Func<string, Task<object>>> _defaultParsers
+        // A list of default parsers for TryParseObjectAsync.
+        // TODO: migrate this to a typereader-style API
+        private readonly Dictionary<Type, Func<string, Task<object>>>
+            _defaultParsers
             = new Dictionary<Type, Func<string, Task<object>>>()
             {
-                [typeof(sbyte)] = (x) => Task.FromResult<object>(sbyte.Parse(x)),
+                [typeof(sbyte)] = (x) => Task.FromResult<object>(
+                    sbyte.Parse(x)),
                 [typeof(byte)] = (x) => Task.FromResult<object>(byte.Parse(x)),
 
-                [typeof(short)] = (x) => Task.FromResult<object>(short.Parse(x)),
-                [typeof(ushort)] = (x) => Task.FromResult<object>(ushort.Parse(x)),
+                [typeof(short)] = (x) => Task.FromResult<object>(
+                    short.Parse(x)),
+                [typeof(ushort)] = (x) => Task.FromResult<object>(
+                    ushort.Parse(x)),
 
                 [typeof(int)] = (x) => Task.FromResult<object>(int.Parse(x)),
                 [typeof(uint)] = (x) => Task.FromResult<object>(uint.Parse(x)),
 
                 [typeof(long)] = (x) => Task.FromResult<object>(long.Parse(x)),
-                [typeof(ulong)] = (x) => Task.FromResult<object>(ulong.Parse(x)),
+                [typeof(ulong)] = (x) => Task.FromResult<object>(
+                    ulong.Parse(x)),
             };
 
-        public virtual async Task<(bool, object)> TryParseObjectAsync(
+        /// <summary>
+        /// Attempts to deserialize a parameter into a given type
+        /// </summary>
+        /// <param name="type">
+        /// The type to deserialize <paramref name="value"/> into.
+        /// </param>
+        /// <param name="value">
+        /// A string containing the value of the parameter to deserialize.
+        /// </param>
+        /// <returns>
+        /// A tuple containing a <see cref="bool"/> representing success, and a
+        /// <see cref="object"/> which will be null if the
+        /// former value is <code>false</code>.
+        /// </returns>
+        protected virtual async Task<(bool, object)> TryParseObjectAsync(
             Type type, string value)
         {
             if (type == typeof(string))
@@ -39,8 +64,19 @@ namespace Wumpus.Commands
             return (false, null);
         }
 
-        public virtual async Task<(bool, object[])> GetArgumentsForMatchAsync(
-            CommandMatch match)
+        /// <summary>
+        /// Attempts to deserialize the arguments for a given comand match.
+        /// </summary>
+        /// <param name="match">
+        /// The <see cref="CommandMatch"/> to deserialize arguments for.
+        /// </param>
+        /// <returns>
+        /// A tuple containing a <see cref="bool"/> representing success, and
+        /// an array of parameters which will be <code>null</code> if the
+        /// former value is <code>false</code>.
+        /// </returns>
+        protected virtual async Task<(bool, object[])>
+            GetArgumentsForMatchAsync(CommandMatch match)
         {
             var arguments = match.Arguments;
 
@@ -70,6 +106,7 @@ namespace Wumpus.Commands
             return (true, result);
         }
 
+        /// <inheritdoc/>
         public virtual async Task ParseAsync<TContext>(
             CommandExecutionContext executionContext)
             where TContext : class, ICommandContext<TContext>

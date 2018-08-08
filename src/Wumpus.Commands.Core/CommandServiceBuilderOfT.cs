@@ -4,18 +4,37 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Wumpus.Commands
 {
+    /// <summary>
+    /// A builder which creates instances of
+    /// <see cref="CommandService&lt;TContext&gt;"/>.
+    /// </summary>
+    /// <typeparam name="TContext">
+    /// The command context type to use.
+    /// </typeparam>
     public class CommandServiceBuilder<TContext>
         where TContext : class, ICommandContext<TContext>
     {
         private readonly List<PipelineCallback> _pipelines;
         private readonly List<ModuleInfo> _modules;
 
+        /// <summary>
+        /// Creates a new CommandServiceBuilder for the given context
+        /// </summary>
         public CommandServiceBuilder()
         {
             _pipelines = new List<PipelineCallback>();
             _modules = new List<ModuleInfo>();
         }
 
+        /// <summary>
+        /// Adds a pipeline to the created command service.
+        /// </summary>
+        /// <param name="pipeline">
+        /// The pipeline to add.
+        /// </param>
+        /// <returns>
+        /// <code>this</code>
+        /// </returns>
         public CommandServiceBuilder<TContext> AddPipeline(
             PipelineCallback pipeline)
         {
@@ -23,6 +42,15 @@ namespace Wumpus.Commands
             return this;
         }
 
+        /// <summary>
+        /// Adds a typed pipeline to the created command service.
+        /// </summary>
+        /// <typeparam name="TPipeline">
+        /// The type of the pipeline to add.
+        /// </typeparam>
+        /// <returns>
+        /// <code>this</code>
+        /// </returns>
         public CommandServiceBuilder<TContext> AddPipeline<TPipeline>()
             where TPipeline : class, IPipeline
         {
@@ -49,6 +77,15 @@ namespace Wumpus.Commands
             return this;
         }
 
+        /// <summary>
+        /// Adds a command parser to the command service.
+        /// <par>
+        /// There should only ever be one command parser, or else conflicts
+        /// may arise.
+        /// </par>
+        /// </summary>
+        /// <typeparam name="TParser"></typeparam>
+        /// <returns></returns>
         public CommandServiceBuilder<TContext> AddCommandParser<TParser>()
             where TParser : class, ICommandParser
         {
@@ -77,6 +114,16 @@ namespace Wumpus.Commands
             return this;
         }
 
+        /// <summary>
+        /// Adds a typed module to the command service. The module must use the
+        /// same context type as the current builder.
+        /// </summary>
+        /// <typeparam name="TModule">
+        /// The type of the module to add.
+        /// </typeparam>
+        /// <returns>
+        /// <code>this</code>
+        /// </returns>
         public CommandServiceBuilder<TContext> AddModule<TModule>()
             where TModule : ModuleBase<TContext>
         {
@@ -91,6 +138,12 @@ namespace Wumpus.Commands
             return this;
         }
 
+        /// <summary>
+        /// Builds the command service with the given pipelines and modules.
+        /// </summary>
+        /// <returns>
+        /// The built <see cref="CommandService&lt;TContext&gt;"/>.
+        /// </returns>
         public CommandService<TContext> BuildCommandService()
         {
             return new CommandService<TContext>(_pipelines, _modules);

@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace Wumpus.Commands
 {
+    /// <summary>
+    /// A builder which represents a parameter passed to a command.
+    /// <seealso cref="CommandBuilder"/>
+    /// </summary>
     public class ParameterBuilder
     {
         // Aliases of the parameter
@@ -30,7 +34,9 @@ namespace Wumpus.Commands
         /// <summary>
         /// Creates a new <see cref="ParameterBuilder"/> with the given name.
         /// </summary>
-        /// <param name="name">The name of the parameter</name>
+        /// <param name="name">
+        /// The name of the parameter.
+        /// </param>
         public ParameterBuilder(string name)
         {
             _aliases = new List<string>();
@@ -42,8 +48,12 @@ namespace Wumpus.Commands
         /// <summary>
         /// Adds aliases to the created <see cref="ParameterInfo"/>.
         /// </summary>
-        /// <param name="aliases">The new aliases to add</param>
-        /// <returns>The current instance, for chaining calls</returns>
+        /// <param name="aliases">
+        /// The new aliases to add
+        /// </param>
+        /// <returns>
+        /// The current instance, for chaining calls.
+        /// </returns>
         public ParameterBuilder AddAliases(params string[] aliases)
         {
             _aliases.AddRange(aliases);
@@ -53,8 +63,12 @@ namespace Wumpus.Commands
         /// <summary>
         /// Adds an attribute to the created <see cref="ParameterInfo"/>.
         /// </summary>
-        /// <param name="attribute">The attribute to add</param>
-        /// <returns>The current instance, for chaining calls</returns>
+        /// <param name="attribute">
+        /// The attribute to add.
+        /// </param>
+        /// <returns>
+        /// The current instance, for chaining calls.
+        /// </returns>
         public ParameterBuilder AddAttribute(Attribute attribute)
         {
             _attributes.Add(attribute);
@@ -64,8 +78,12 @@ namespace Wumpus.Commands
         /// <summary>
         /// Sets the type of the created <see cref="ParameterInfo"/>.
         /// </summary>
-        /// <param name="type">The type of the parameter</param>
-        /// <returns>The current instance, for chaining calls</returns>
+        /// <param name="type">
+        /// The type of the parameter.
+        /// </param>
+        /// <returns>
+        /// The current instance, for chaining calls.
+        /// </returns>
         public ParameterBuilder WithType(Type type)
         {
             _type = type;

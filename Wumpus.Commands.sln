@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.26730.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wumpus.Commands.Core", "src\Wumpus.Commands.Core\Wumpus.Commands.Core.csproj", "{9BD4CCA5-7F4F-45F0-8926-BD8850502E1C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandTests", "test\CommandTests\CommandTests.csproj", "{21ED1C22-3F31-456E-933D-671EC945F56A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wumpus.Commands.Core.Tests", "test\Wumpus.Commands.Core.Tests\Wumpus.Commands.Core.Tests.csproj", "{21ED1C22-3F31-456E-933D-671EC945F56A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
