@@ -72,7 +72,20 @@ namespace Wumpus.Commands
         /// <code>true</code> when the character is an escapable character.
         /// </returns>
         protected virtual bool IsEscapableCharacter(char escapedCharacter)
-            => IsQuoteCharacter(escapedCharacter);
+        {
+            return
+                // Parser characters
+                IsEscapeCharacter(escapedCharacter) ||
+                IsQuoteCharacter(escapedCharacter) ||
+
+                // Markdown
+                escapedCharacter == '*' || escapedCharacter == '_' ||
+                escapedCharacter == '~' ||
+
+                // Tags
+                escapedCharacter == '<' || escapedCharacter == '@' ||
+                escapedCharacter == '#';
+        }
 
 
         /// <summary>
@@ -110,12 +123,19 @@ namespace Wumpus.Commands
                             "An escape sequence was left unfinished",
                             commandText, i);
                     case TokenizerState.Normal
+                        when IsQuoteCharacter(c):
+                        throw new TokenizerException(
+                            "A quote must either be escaped or " +
+                            "preceeded by a space to begin a quoted string",
+                            commandText, i);
+                    case TokenizerState.Normal
                         when IsEscapeCharacter(c):
                         state = TokenizerState.EscapeCharacter;
                         break;
 
                     case TokenizerState.EscapeCharacter
                         when IsEscapableCharacter(c):
+                        state = TokenizerState.Normal;
                         goto default;
                     case TokenizerState.EscapeCharacter:
                         throw new TokenizerException(
@@ -131,6 +151,7 @@ namespace Wumpus.Commands
                         when IsQuoteCharacter(c):
                         state = TokenizerState.QuotedString;
                         beginQuote = c;
+                        paramBuilder.Clear();
                         break;
                     case TokenizerState.ParameterSeparator
                         when !char.IsWhiteSpace(c):
