@@ -1,17 +1,40 @@
 image: microsoft/dotnet:2.1-sdk
 
 stages:
+  - build
+  - test
+  - release
+
+variables:
+  BUILD_ID_CMD: "printf %05d $CI_PIPELINE_IID"
+  MYGET_PACKAGE_URL: "https://www.myget.org/F/finitereality/api/v2/package"
+
+build:
+  stage: build
+  script:
+    - dotnet build Wumpus.Commands.sln -c Release \
+        /p:BuildId="`$BUILD_ID_CMD`" /p:Tag="$CI_COMMIT_TAG"
+    - dotnet pack Wumpus.Commands.sln -c Release -o ../../artifacts \
+        /p:BuildId="`$BUILD_ID_CMD`" /p:Tag="$CI_COMMIT_TAG"
+  artifacts:
+    name: "$CI_COMMIT_REF_SLUG"
+    expire_in: 1 week
+    paths:
+      - artifacts/
+
+test:
+  stage: test
+  script:
+    - dotnet test Wumpus.Commands.Tests.sln -c Release \
+        /p:BuildId="`$BUILD_ID_CMD`" /p:Tag="$CI_COMMIT_TAG"
+
+push:
+  stage: release
+  only:
+    - master@finitereality/wumpus.commands
+  dependencies:
     - build
-    - test
-    - release
-
-build and create nupkgs:
-    stage: build
-    script:
-        - dotnet build Wumpus.Commands.sln -c Release /p:BuildId="$CI_PIPELINE_IID" /p:Tag="$CI_COMMIT_TAG"
-        - dotnet pack Wumpus.Commands.sln -c Release -o artifacts /p:BuildId="$CI_PIPELINE_IID" /p:Tag="$CI_COMMIT_TAG"
-
-run unit tests:
-    stage: test
-    script:
-        - dotnet test Wumpus.Commands.Tests.sln -c Release /p:BuildId="$CI_PIPELINE_IID" /p:Tag="$CI_COMMIT_TAG"
+  script:
+    - for file in artifacts/*; do \
+        dotnet nuget push $file -s "$MYGET_PACKAGE_URL" -k "$MYGET_API_KEY"; \
+      done
