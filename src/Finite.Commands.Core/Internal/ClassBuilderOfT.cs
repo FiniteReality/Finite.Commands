@@ -138,8 +138,6 @@ namespace Finite.Commands
                 .CreateFactory(method.DeclaringType, Array.Empty<Type>());
 
             var onExecuting = GetOnExecutingCallback(method.DeclaringType);
-            var resultGetter = _compiledResultGetters.GetOrAdd(
-                method.ReturnType, CreateResultGetter);
 
             return async (command, context, services, arguments) =>
             {
@@ -159,6 +157,10 @@ namespace Finite.Commands
                         return SuccessResult.Instance;
 
                     await task;
+
+                    var resultGetter = _compiledResultGetters.GetOrAdd(
+                        method.ReturnType, CreateResultGetter);
+
                     return resultGetter(task);
                 }
                 finally
