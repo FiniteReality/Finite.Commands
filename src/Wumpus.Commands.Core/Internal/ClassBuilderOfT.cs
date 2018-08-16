@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,8 +18,11 @@ namespace Wumpus.Commands
             typeof(ModuleBase<TContext>).GetTypeInfo();
 
         private static readonly ConcurrentDictionary<Type,
-            Func<Task, IResult>> _getResultMap =
-                new ConcurrentDictionary<Type, Func<Task, IResult>>();
+            Func<Task, IResult>> _compiledResultGetters =
+                new ConcurrentDictionary<Type, Func<Task, IResult>>
+                {
+                    [typeof(Task)] = (x) => SuccessResult.Instance
+                };
 
         public static bool IsValidModuleDefinition(TypeInfo type)
         {
@@ -132,15 +136,16 @@ namespace Wumpus.Commands
                 try
                 {
                     var boxedResult = method.Invoke(module, arguments);
-                    IResult result = SuccessResult.Instance;
 
-                    if (boxedResult is Task task)
-                    {
-                        await task;
-                        TryGetResult(task, ref result);
-                    }
+                    if (!(boxedResult is Task task))
+                        return SuccessResult.Instance;
 
-                    return result;
+                    await task;
+
+                    var getter = _compiledResultGetters.GetOrAdd(
+                        task.GetType(), CreateResultGetter);
+
+                    return getter(task);
                 }
                 finally
                 {
@@ -150,33 +155,19 @@ namespace Wumpus.Commands
             };
         }
 
-        private static void TryGetResult(Task task, ref IResult result)
+        private static Func<Task, IResult> CreateResultGetter(Type type)
         {
-            Func<Task, IResult> CreateGetterLambda(Type type)
-            {
-                var prop = type.GetProperty("Result")
-                    .GetGetMethod();
+            // Creates a lambda function which looks similar to this:
+            // (x) => ((Task<TResult>)x).Result
 
-                // TODO: find a delegate for this instead of relying on Invoke
-                return x => (IResult)prop.Invoke(x, Array.Empty<object>());
-            }
+            var parameter = Expression.Parameter(typeof(Task));
 
-            bool IsTaskReturningICommandResult(Type type)
-            {
-                return type.IsGenericType &&
-                    _ICommandResultTypeInfo.IsAssignableFrom(
-                        type.GenericTypeArguments[0]);
-            }
-
-            var taskType = task.GetType();
-
-            if (IsTaskReturningICommandResult(taskType))
-            {
-                var getter = _getResultMap.GetOrAdd(taskType,
-                    CreateGetterLambda);
-
-                result = getter(task) as IResult;
-            }
+            return Expression.Lambda<Func<Task, IResult>>(
+                Expression.Property(
+                    Expression.Convert(parameter, type),
+                    "Result"),
+                parameter)
+                    .Compile();
         }
 
         private static OnBuildingCallback
