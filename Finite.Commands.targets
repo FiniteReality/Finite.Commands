@@ -2,6 +2,11 @@
   <PropertyGroup>
     <VersionPrefix>0.2.0</VersionPrefix>
     <Authors>FiniteReality</Authors>
+    <PackageTags>commands;chat;im</PackageTags>
+    <PackageProjectUrl>https://gitlab.com/FiniteReality/Finite.Commands</PackageProjectUrl>
+    <PackageLicenseUrl>http://opensource.org/licenses/MIT</PackageLicenseUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>git://gitlab.com/FiniteReality/Finite.Commands</RepositoryUrl>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Tag)' != '' ">
     <VersionSuffix Condition=" '$(VersionSuffix)' != '' ">$(Tag)-$(VersionSuffix)</VersionSuffix>
