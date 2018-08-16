@@ -12,9 +12,6 @@ namespace Wumpus.Commands
         /// <summary>
         /// The aliases added to the current target.
         /// </summary>
-        /// <value>
-        /// The Aliases property gets the list of aliases added to the target.
-        /// </value>
         public string[] Aliases { get; }
 
         /// <summary>

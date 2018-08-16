@@ -111,7 +111,8 @@ namespace Wumpus.Commands
             CommandExecutionContext executionContext)
             where TContext : class, ICommandContext<TContext>
         {
-            string[] tokenStream = Tokenize(executionContext.Context.Message);
+            string[] tokenStream = Tokenize(executionContext.Context.Message,
+                executionContext.PrefixLength);
             var commands = executionContext.CommandService;
 
             foreach (var match in commands.FindCommands(tokenStream))

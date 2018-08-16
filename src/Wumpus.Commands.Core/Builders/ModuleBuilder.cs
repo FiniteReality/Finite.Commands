@@ -21,40 +21,24 @@ namespace Wumpus.Commands
         /// <summary>
         /// A collection of aliases applied to this module.
         /// </summary>
-        /// <value>
-        /// The Aliases property gets a collection of aliases applied to the
-        /// current module.
-        /// </value>
         public IReadOnlyCollection<string> Aliases
             => _aliases.AsReadOnly();
 
         /// <summary>
         /// A collection of attributes applied to this module.
         /// </summary>
-        /// /// <value>
-        /// The Attributes property gets a collection of attributes applied to
-        /// the current module.
-        /// </value>
         public IReadOnlyCollection<Attribute> Attributes
             => _attributes.AsReadOnly();
 
         /// <summary>
         /// A collection of submodules contained by this module.
         /// </summary>
-        /// /// <value>
-        /// The Submodules property gets a collection of submodules contained
-        /// by the current module.
-        /// </value>
         public IReadOnlyCollection<ModuleBuilder> Submodules
             => _submodules.AsReadOnly();
 
         /// <summary>
         /// A collection of commands contained by this module.
         /// </summary>
-        /// <value>
-        /// The Commands property gets a collection of commands contained by
-        /// the current module.
-        /// </value>
         public IReadOnlyCollection<CommandBuilder> Commands
             => _commands.AsReadOnly();
 

@@ -12,9 +12,6 @@ namespace Wumpus.Commands
         /// <summary>
         /// The aliases used to invoke this command.
         /// </summary>
-        /// <value>
-        /// The Aliases property gets the list of aliases added to the command.
-        /// </value>
         public string[] Aliases { get; }
 
         /// <summary>

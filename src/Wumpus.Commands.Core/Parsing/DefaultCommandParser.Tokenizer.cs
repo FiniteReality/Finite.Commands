@@ -94,18 +94,26 @@ namespace Wumpus.Commands
         /// <param name="commandText">
         /// The command text to tokenize.
         /// </param>
+        /// <param name="prefixLength">
+        /// The number of characters of <paramref name="commandText"/> to skip.
+        /// </param>
         /// <returns>
         /// An array of strings representing the individual tokens contained in
         /// <paramref name="commandText"/>.
         /// </returns>
-        protected virtual string[] Tokenize(string commandText)
+        protected virtual string[] Tokenize(string commandText,
+            int prefixLength)
         {
+            if (prefixLength >= commandText.Length)
+                throw new ArgumentOutOfRangeException(
+                    nameof(prefixLength));
+
             var paramBuilder = new StringBuilder();
             var result = new List<string>();
             var state = TokenizerState.Normal;
             var beginQuote = default(char);
 
-            for (int i = 0; i < commandText.Length; i++)
+            for (int i = prefixLength; i < commandText.Length; i++)
             {
                 char c = commandText[i];
                 var isLastCharacter = i == commandText.Length - 1;

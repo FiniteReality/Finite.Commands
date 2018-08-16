@@ -13,11 +13,6 @@ namespace Wumpus.Commands
         /// <summary>
         /// The command service which contains a command being executed.
         /// </summary>
-        /// <value>
-        /// The Commands property returns the
-        /// <see cref="CommandService&lt;TContext&gt;"/> which contains the
-        /// command being executed.
-        /// </value>
         CommandService<TContext> Commands { get; }
     }
 }

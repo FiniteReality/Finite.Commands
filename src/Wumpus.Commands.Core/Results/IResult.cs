@@ -12,10 +12,6 @@ namespace Wumpus.Commands
         /// <summary>
         /// The success value of this result.
         /// </summary>
-        /// <value>
-        /// The IsSuccess property gets a boolean representing whether a
-        /// pipeline succeeded or not.
-        /// </value>
         bool IsSuccess { get; }
     }
 }

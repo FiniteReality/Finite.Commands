@@ -12,13 +12,9 @@ namespace Wumpus.Commands
         where TContext : ICommandContext
     {
         /// <summary>
-        /// The context data
+        /// The contextual data passed to the command, such as message author
+        /// and message content.
         /// </summary>
-        /// <value>
-        /// The Context parameter returns a <typeparamref name="TContext"/>
-        /// containing contextual data for the command, such as its message
-        /// content and author.
-        /// </value>
         public TContext Context { get; private set; }
 
         internal void SetContext(ICommandContext context)

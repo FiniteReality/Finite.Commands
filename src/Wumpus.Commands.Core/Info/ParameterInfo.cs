@@ -18,33 +18,18 @@ namespace Wumpus.Commands
         /// <summary>
         /// A collection of aliases of the parameter.
         /// </summary>
-        /// <value>
-        /// The Aliases property gets a collection of type <see cref="string"/>
-        /// of aliases added to the parameter.
-        /// </value>
         public IReadOnlyCollection<string> Aliases => _aliases;
         /// <summary>
         /// A collection of attributes applied to the parameter.
         /// </summary>
-        /// <value>
-        /// The Attributes property gets a collection of type
-        /// <see cref="Attribute"/> of attributes added to the parameter.
-        /// </value>
         public IReadOnlyCollection<Attribute> Attributes => _attributes;
         /// <summary>
         /// The type of this parameter.
         /// </summary>
-        /// <value>
-        /// The Type property gets the <see cref="Type"/> of the parameter.
-        /// </value>
         public Type Type => _type;
         /// <summary>
         /// The parent command of this parameter.
         /// </summary>
-        /// <value>
-        /// The Command property gets the <see cref="CommandInfo"/> which
-        /// contains this parameter.
-        /// </value>
         public CommandInfo Command => _command;
 
         internal ParameterInfo(CommandInfo command,

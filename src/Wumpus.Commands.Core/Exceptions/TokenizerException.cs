@@ -10,19 +10,11 @@ namespace Wumpus.Commands
         /// <summary>
         /// The input string which caused this error.
         /// </summary>
-        /// <value>
-        /// The InputString property gets the input string which caused the
-        /// tokenizer error.
-        /// </value>
         public string InputString { get; }
 
         /// <summary>
         /// The position of the input string which caused the error.
         /// </summary>
-        /// <value>
-        /// The Position property returns a zero-based index of
-        /// <see cref="InputString"/> where the tokenizer error occured.
-        /// </value>
         public int Position { get; }
 
         /// <summary>
