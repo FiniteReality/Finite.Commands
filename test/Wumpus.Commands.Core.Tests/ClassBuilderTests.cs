@@ -17,6 +17,9 @@ namespace Wumpus.Commands.Tests
 
             Assert.False(ClassBuilder
                 .IsValidModule<InvalidTestModule, TestContext>());
+
+            Assert.False(ClassBuilder
+                .IsValidModule<InvalidTestModuleBadReturnType, TestContext>());
         }
 
         [Fact]
@@ -115,5 +118,12 @@ namespace Wumpus.Commands.Tests
     internal class InvalidTestModule : ModuleBase<TestContext>
     {
 
+    }
+
+    internal class InvalidTestModuleBadReturnType : ModuleBase<TestContext>
+    {
+        [Command("derp")]
+        public int BadReturnType()
+            => 1;
     }
 }

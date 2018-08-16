@@ -12,6 +12,12 @@ namespace Wumpus.Commands
     internal class ClassBuilder<TContext>
         where TContext : class, ICommandContext
     {
+        private static readonly TypeInfo _VoidTypeInfo =
+            typeof(void).GetTypeInfo();
+        private static readonly TypeInfo _NonGenericTaskTypeInfo =
+            typeof(Task).GetTypeInfo();
+        private static readonly TypeInfo _GenericTaskTypeInfo =
+            typeof(Task<>).GetTypeInfo();
         private static readonly TypeInfo _ICommandResultTypeInfo =
             typeof(IResult).GetTypeInfo();
         private static readonly TypeInfo _ModuleBaseTypeInfo =
@@ -32,8 +38,18 @@ namespace Wumpus.Commands
 
         public static bool IsValidCommandDefinition(MethodInfo method)
         {
+            bool IsValidReturnType(Type returnType)
+            {
+                return _VoidTypeInfo == returnType
+                    || _NonGenericTaskTypeInfo == returnType
+                    || (returnType.IsConstructedGenericType
+                        && _ICommandResultTypeInfo.IsAssignableFrom(
+                            returnType.GetGenericArguments().First()));
+            }
+
             return method.IsPublic &&
-                method.GetCustomAttribute<CommandAttribute>() != null;
+                method.GetCustomAttribute<CommandAttribute>() != null &&
+                IsValidReturnType(method.ReturnType);
         }
 
         public static ModuleInfo Build(TypeInfo type)
