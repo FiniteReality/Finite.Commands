@@ -12,9 +12,9 @@ variables:
 build:
   stage: build
   script:
-    - dotnet build Wumpus.Commands.sln -c Release
+    - dotnet build Finite.Commands.sln -c Release
         /p:BuildId="`$BUILD_ID_CMD`" /p:Tag="$CI_COMMIT_TAG"
-    - dotnet pack Wumpus.Commands.sln -c Release -o ../../artifacts
+    - dotnet pack Finite.Commands.sln -c Release -o ../../artifacts
         /p:BuildId="`$BUILD_ID_CMD`" /p:Tag="$CI_COMMIT_TAG"
   artifacts:
     name: "$CI_COMMIT_REF_SLUG"
@@ -25,13 +25,13 @@ build:
 test:
   stage: test
   script:
-    - dotnet test Wumpus.Commands.Tests.sln -c Release
+    - dotnet test Finite.Commands.Tests.sln -c Release
         /p:BuildId="`$BUILD_ID_CMD`" /p:Tag="$CI_COMMIT_TAG"
 
 push:
   stage: release
   only:
-    - master@FiniteReality/Wumpus.Commands
+    - master@FiniteReality/Finite.Commands
   dependencies:
     - build
   script:
