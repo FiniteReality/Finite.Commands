@@ -9,7 +9,7 @@ namespace Finite.Commands
     /// <summary>
     /// Contains information about a command
     /// </summary>
-    public class CommandInfo
+    public sealed class CommandInfo
     {
         private readonly CommandCallback _callback;
         private readonly IReadOnlyCollection<string> _aliases;

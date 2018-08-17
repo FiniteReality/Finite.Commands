@@ -7,7 +7,7 @@ namespace Finite.Commands
     /// <summary>
     /// A builder class for creating modules.
     /// </summary>
-    public class ModuleBuilder
+    public sealed class ModuleBuilder
     {
         // Prefixes that this module adds to a command
         private readonly List<string> _aliases;

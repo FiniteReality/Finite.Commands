@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Finite.Commands
 {
-    internal class ClassBuilder<TContext>
+    internal static class ClassBuilder<TContext>
         where TContext : class, ICommandContext
     {
         private static readonly TypeInfo _VoidTypeInfo =

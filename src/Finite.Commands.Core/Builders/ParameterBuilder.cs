@@ -7,7 +7,7 @@ namespace Finite.Commands
     /// A builder which represents a parameter passed to a command.
     /// <seealso cref="CommandBuilder"/>
     /// </summary>
-    public class ParameterBuilder
+    public sealed class ParameterBuilder
     {
         // Aliases of the parameter
         private readonly List<string> _aliases;

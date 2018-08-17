@@ -9,7 +9,7 @@ namespace Finite.Commands
     /// <summary>
     /// A builder class for creating <see cref="CommandInfo"/> instances.
     /// </summary>
-    public class CommandBuilder
+    public sealed class CommandBuilder
     {
         // Aliases of the command
         private readonly List<string> _aliases;

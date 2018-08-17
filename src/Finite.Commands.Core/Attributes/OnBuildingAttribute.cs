@@ -8,6 +8,6 @@ namespace Finite.Commands
     /// </summary>
     [AttributeUsage(AttributeTargets.Method,
         Inherited = true, AllowMultiple = false)]
-    sealed class OnBuildingAttribute : Attribute
+    public sealed class OnBuildingAttribute : Attribute
     { }
 }

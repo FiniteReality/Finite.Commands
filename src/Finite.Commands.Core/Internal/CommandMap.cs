@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Finite.Commands
 {
-    internal class CommandMap
+    internal sealed class CommandMap
     {
         private readonly CommandMapNode _root;
 
@@ -60,7 +60,7 @@ namespace Finite.Commands
         public bool RemoveCommand(string[] path, out CommandInfo command)
             => _root.Remove(path, out command, 0);
 
-        private class CommandMapNode
+        private sealed class CommandMapNode
         {
             private readonly Dictionary<string, CommandInfo> _commands;
             private readonly Dictionary<string, CommandMapNode> _nodes;
@@ -89,11 +89,8 @@ namespace Finite.Commands
 
                 if (_commands.TryGetValue(segment, out var rootCommand))
                 {
-                    yield return new CommandMatch
-                    {
-                        Command = rootCommand,
-                        Arguments = segments.Skip(startIndex + 1).ToArray()
-                    };
+                    yield return new CommandMatch(rootCommand,
+                        segments.Skip(startIndex + 1).ToArray());
                 }
             }
 

@@ -8,7 +8,7 @@ namespace Finite.Commands
     /// <summary>
     /// Contains information about a module.
     /// </summary>
-    public class ModuleInfo
+    public sealed class ModuleInfo
     {
         private readonly IReadOnlyCollection<string> _aliases;
         private readonly IReadOnlyCollection<Attribute> _attributes;

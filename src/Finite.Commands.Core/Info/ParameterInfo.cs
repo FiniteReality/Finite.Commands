@@ -8,7 +8,7 @@ namespace Finite.Commands
     /// <summary>
     /// Contains information about a command
     /// </summary>
-    public class ParameterInfo
+    public sealed class ParameterInfo
     {
         private readonly Type _type;
         private readonly IReadOnlyCollection<string> _aliases;
