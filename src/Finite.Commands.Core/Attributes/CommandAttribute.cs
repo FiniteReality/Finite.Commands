@@ -27,10 +27,6 @@ namespace Finite.Commands
         /// </exception>
         public CommandAttribute(params string[] aliases)
         {
-            if (aliases.Length == 0)
-                throw new InvalidOperationException(
-                    "At least one alias must be given.");
-
             Aliases = aliases;
         }
     }
