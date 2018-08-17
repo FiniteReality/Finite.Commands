@@ -18,7 +18,7 @@ namespace Finite.Commands
                     foreach (var alias in command.Aliases)
                     {
                         path.Push(alias);
-                        AddCommand(path.ToArray(), command);
+                        AddCommand(path.Reverse().ToArray(), command);
                         path.Pop();
                     }
                 }
