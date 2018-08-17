@@ -59,5 +59,59 @@ namespace Finite.Commands.Tests
             commandsArray = commands.ToArray();
             Assert.Empty(commandsArray);
         }
+
+        [Theory]
+        [InlineData(
+            new string[]{"module", "module stat", "module stats"},
+            "module",
+            1)]
+        [InlineData(
+            new string[]{"module", "module stat", "module stats"},
+            "module ThisIsAnArgument",
+            1)]
+        [InlineData(
+            new string[]{"module", "module stat", "module stats"},
+            "module stat",
+            2)]
+        [InlineData(
+            new string[]{"module", "module stat", "module stats"},
+            "module stat ThisIsAnArgument",
+            2)]
+        [InlineData(
+            new string[]{"module", "module stat", "module stats"},
+            "module stats",
+            2)]
+        [InlineData(
+            new string[]{"module", "module stat", "module stats"},
+            "module stats ThisIsAnArgument",
+            2)]
+        [InlineData(
+            new string[]{"module", "module stat", "module stats"},
+            "unrelated",
+            0)]
+        [InlineData(
+            new string[]{"module", "module stat", "module stats"},
+            "",
+            0)]
+        void FindCommandsDefaultAlias(string[] aliases,
+            string searchQuery, int expectedQueryResults)
+        {
+            var map = new CommandMap();
+            var testCommand = new CommandInfo(null, null, null, null,
+                Array.Empty<ParameterBuilder>());
+
+            foreach (var alias in aliases)
+            {
+                string[] path = alias.Split(' ');
+
+                Assert.True(map.AddCommand(path, testCommand));
+            }
+
+            var commands = map.GetCommands(searchQuery.Split(' '));
+            Assert.NotNull(commands);
+
+            var commandsArray = commands.ToArray();
+            Assert.Equal(expectedQueryResults, commandsArray.Length);
+        }
     }
 }
