@@ -15,12 +15,15 @@ namespace Finite.Commands
             {
                 foreach (var command in module.Commands)
                 {
-                    foreach (var alias in command.Aliases)
-                    {
-                        path.Push(alias);
+                    if (command.Aliases.Count == 0)
                         AddCommand(path.Reverse().ToArray(), command);
-                        path.Pop();
-                    }
+                    else
+                        foreach (var alias in command.Aliases)
+                        {
+                            path.Push(alias);
+                            AddCommand(path.Reverse().ToArray(), command);
+                            path.Pop();
+                        }
                 }
 
                 foreach (var submodule in module.Submodules)
