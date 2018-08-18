@@ -11,7 +11,7 @@ namespace Finite.Commands
             new Dictionary<TKey, List<TValue>>();
 
         public IEnumerable<TValue> this[TKey key]
-            => _members[key].AsReadOnly();
+            => _members[key];
 
         public int Count
             => _members.Sum(x => x.Value.Count);
@@ -20,28 +20,23 @@ namespace Finite.Commands
             => _members.ContainsKey(key);
 
         public IEnumerator<IGrouping<TKey, TValue>> GetEnumerator()
-            => _members.SelectMany(
-                    x => x.Value,
-                    (x, y) => new { x.Key, Value = y })
-                .ToLookup(x => x.Key, x => x.Value)
-                .GetEnumerator();
+            => _members.Select(x => new Grouping(x))
+                    .GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
 
         public bool TryGetValues(TKey key, out ICollection<TValue> values)
         {
-            List<TValue> _values;
-            if (_members.TryGetValue(key, out _values))
+            List<TValue> temp;
+            if (_members.TryGetValue(key, out temp))
             {
-                values = _values.AsReadOnly();
+                values = temp;
                 return true;
             }
-            else
-            {
-                values = null;
-                return false;
-            }
+
+            values = null;
+            return false;
         }
 
         public bool TryAddValue(TKey key, TValue value)
@@ -59,6 +54,25 @@ namespace Finite.Commands
                 return values.Remove(value);
 
             return false;
+        }
+
+        private class Grouping : IGrouping<TKey, TValue>
+        {
+            private readonly List<TValue> _values;
+
+            public Grouping(KeyValuePair<TKey, List<TValue>> pair)
+            {
+                Key = pair.Key;
+                _values = pair.Value;
+            }
+
+            public TKey Key { get; }
+
+            public IEnumerator<TValue> GetEnumerator()
+                => _values.GetEnumerator();
+
+            IEnumerator IEnumerable.GetEnumerator()
+                => GetEnumerator();
         }
     }
 }
