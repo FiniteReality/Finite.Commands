@@ -57,17 +57,17 @@ namespace Finite.Commands
         public bool AddCommand(string[] path, CommandInfo command)
             => _root.Add(command, path, 0);
 
-        public bool RemoveCommand(string[] path, out CommandInfo command)
-            => _root.Remove(path, out command, 0);
+        public bool RemoveCommand(string[] path, CommandInfo command)
+            => _root.Remove(path, command, 0);
 
         private sealed class CommandMapNode
         {
-            private readonly Dictionary<string, CommandInfo> _commands;
+            private readonly MultiMap<string, CommandInfo> _commands;
             private readonly Dictionary<string, CommandMapNode> _nodes;
 
             public CommandMapNode()
             {
-                _commands = new Dictionary<string, CommandInfo>();
+                _commands = new MultiMap<string, CommandInfo>();
                 _nodes = new Dictionary<string, CommandMapNode>();
             }
 
@@ -87,10 +87,12 @@ namespace Finite.Commands
                         yield return command;
                 }
 
-                if (_commands.TryGetValue(segment, out var rootCommand))
+                if (_commands.TryGetValues(segment, out var matches))
                 {
-                    yield return new CommandMatch(rootCommand,
-                        segments.Skip(startIndex + 1).ToArray());
+                    foreach (var match in matches)
+                        yield return new CommandMatch(match,
+                            segments.Skip(startIndex + 1).ToArray(),
+                            segments.Take(startIndex + 1).ToArray());
                 }
             }
 
@@ -99,7 +101,7 @@ namespace Finite.Commands
             {
                 if (startIndex == segments.Length - 1)
                 {
-                    return _commands.TryAdd(segments[startIndex], command);
+                    return _commands.TryAddValue(segments[startIndex], command);
                 }
                 else
                 {
@@ -111,19 +113,19 @@ namespace Finite.Commands
                 }
             }
 
-            public bool Remove(string[] segments, out CommandInfo command,
+            public bool Remove(string[] segments, CommandInfo command,
                 int startIndex)
             {
                 if (startIndex == segments.Length - 1)
                 {
-                    return _commands.TryRemove(segments[startIndex],
-                        out command);
+                    return _commands.TryRemoveValue(segments[startIndex],
+                        command);
                 }
                 else
                 {
                     var segment = segments[startIndex];
                     if (_nodes.TryGetValue(segment, out var node))
-                        return node.Remove(segments, out command,
+                        return node.Remove(segments, command,
                             startIndex + 1);
                 }
 

@@ -14,10 +14,15 @@ namespace Finite.Commands
         /// <param name="arguments">
         /// The arguments to pass to this command
         /// </param>
-        internal CommandMatch(CommandInfo command, string[] arguments)
+        /// <param name="path">
+        /// The path of <paramref name="command" /> which was matched
+        /// </path>
+        internal CommandMatch(CommandInfo command, string[] arguments,
+            string[] path)
         {
             Command = command;
             Arguments = arguments;
+            CommandPath = path;
         }
 
         /// <summary>
@@ -29,5 +34,10 @@ namespace Finite.Commands
         /// The list of arguments to pass to this matched command
         /// </summary>
         public string[] Arguments { get; }
+
+        /// <summary>
+        /// The full path of the command which was matched
+        /// </summary>
+        public string[] CommandPath { get; }
     }
 }

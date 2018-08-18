@@ -19,16 +19,14 @@ namespace Finite.Commands.Tests
                 Array.Empty<ParameterBuilder>());
 
             Assert.True(map.AddCommand(path, testCommand));
-            Assert.False(map.AddCommand(path, testCommand2));
-            Assert.True(map.RemoveCommand(path,
-                out var removedCommand));
-            Assert.Equal(testCommand, removedCommand);
+            Assert.True(map.AddCommand(path, testCommand2));
+            Assert.True(map.RemoveCommand(path, testCommand));
+            Assert.True(map.RemoveCommand(path, testCommand2));
 
             Assert.True(map.AddCommand(path, testCommand2));
-            Assert.False(map.AddCommand(path, testCommand));
-            Assert.True(map.RemoveCommand(path,
-                out removedCommand));
-            Assert.Equal(testCommand2, removedCommand);
+            Assert.True(map.AddCommand(path, testCommand));
+            Assert.True(map.RemoveCommand(path, testCommand2));
+            Assert.True(map.RemoveCommand(path, testCommand));
         }
 
         [Theory]

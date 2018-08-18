@@ -103,7 +103,9 @@ namespace Finite.Commands
                 i++;
             }
 
-            return (true, result);
+            var metExpectedArgumentCount =
+                match.Arguments.Length >= match.Command.Parameters.Count;
+            return (metExpectedArgumentCount, result);
         }
 
         /// <inheritdoc/>

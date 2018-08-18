@@ -35,7 +35,10 @@ namespace Finite.Commands
         /// <inheritdoc/>
         public IEnumerable<CommandMatch> FindCommands(string[] fullPath)
         {
-            return _commandMap.GetCommands(fullPath);
+            return _commandMap.GetCommands(fullPath)
+                .OrderByDescending(x => x.CommandPath.Length)
+                .ThenByDescending(x => x.Command.Parameters.Count)
+                .ThenByDescending(x => x.Arguments.Length);
         }
 
         /// <summary>
