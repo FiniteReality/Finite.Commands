@@ -16,7 +16,7 @@ namespace Finite.Commands
         /// </param>
         /// <param name="path">
         /// The path of <paramref name="command" /> which was matched
-        /// </path>
+        /// </param>
         internal CommandMatch(CommandInfo command, string[] arguments,
             string[] path)
         {
