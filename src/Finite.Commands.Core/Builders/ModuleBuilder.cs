@@ -116,15 +116,20 @@ namespace Finite.Commands
         /// <summary>
         /// Builds the module, including submodules and commands.
         /// </summary>
+        /// <typeparam name="TContext">
+        /// The type of context this module supports. Submodules and commands
+        /// will also use this context type.
+        /// </typeparam>
         /// <returns>
         /// The built module.
         /// </returns>
-        public ModuleInfo Build()
-            => Build(null);
+        public ModuleInfo Build<TContext>()
+            where TContext : class, ICommandContext
+            => Build(null, typeof(TContext));
 
-        internal ModuleInfo Build(ModuleInfo parent)
+        internal ModuleInfo Build(ModuleInfo parent, Type contextType)
         {
-            return new ModuleInfo(parent,
+            return new ModuleInfo(parent, contextType,
                 Aliases, Attributes, Submodules, Commands);
         }
     }

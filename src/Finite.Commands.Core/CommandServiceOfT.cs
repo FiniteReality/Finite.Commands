@@ -19,7 +19,12 @@ namespace Finite.Commands
         private readonly IReadOnlyList<ModuleInfo> _modules;
         private readonly IReadOnlyList<PipelineCallback> _pipelines;
         private readonly CommandMap _commandMap;
-        private readonly ICommandParser _parser;
+
+        /// <summary>
+        /// Gets a collection of modules which this command service can use
+        /// </summary>
+        public IReadOnlyCollection<ModuleInfo> Modules
+            => _modules;
 
         internal CommandService(
             IReadOnlyList<PipelineCallback> pipelines,
@@ -28,8 +33,32 @@ namespace Finite.Commands
             _modules = modules;
             _pipelines = pipelines;
             _commandMap = new CommandMap(modules);
+        }
 
-            _parser = new DefaultCommandParser();
+        /// <summary>
+        /// Gets all of the commands stored by this command service.
+        /// </summary>
+        /// <remarks>
+        /// This is a potentially expensive operation
+        /// </remarks>
+        /// <returns>
+        /// An un-ordered enumerable of commands.
+        /// </returns>
+        public IEnumerable<CommandInfo> GetAllCommands()
+        {
+            IEnumerable<CommandInfo> IterateModule(ModuleInfo module)
+            {
+                foreach (var submodule in module.Submodules)
+                    foreach (var command in IterateModule(module))
+                        yield return command;
+
+                foreach (var command in module.Commands)
+                    yield return command;
+            }
+
+            foreach (var module in _modules)
+                foreach (var command in IterateModule(module))
+                    yield return command;
         }
 
         /// <inheritdoc/>

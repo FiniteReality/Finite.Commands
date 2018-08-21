@@ -32,8 +32,8 @@ namespace Finite.Commands
 
         public static bool IsValidModuleDefinition(TypeInfo type)
         {
-            return _ModuleBaseTypeInfo.IsAssignableFrom(type) &&
-                type.DeclaredMethods.Any(x => IsValidCommandDefinition(x));
+            return _ModuleBaseTypeInfo.IsAssignableFrom(type)
+                && type.DeclaredMethods.Any(IsValidCommandDefinition);
         }
 
         public static bool IsValidCommandDefinition(MethodInfo method)
@@ -47,15 +47,13 @@ namespace Finite.Commands
                             returnType.GetGenericArguments().First()));
             }
 
-            return method.IsPublic &&
-                method.GetCustomAttribute<CommandAttribute>() != null &&
-                IsValidReturnType(method.ReturnType);
+            return method.IsPublic
+                && method.GetCustomAttribute<CommandAttribute>() != null
+                && IsValidReturnType(method.ReturnType);
         }
 
         public static ModuleInfo Build(TypeInfo type)
-        {
-            return BuildType(type).Build();
-        }
+            => BuildType(type).Build<TContext>();
 
         private static ModuleBuilder BuildType(TypeInfo type)
         {

@@ -4,21 +4,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Finite.Commands
 {
-    /// <summary>
-    /// A builder which creates instances of
-    /// <see cref="CommandService&lt;TContext&gt;"/>.
-    /// </summary>
-    /// <typeparam name="TContext">
-    /// The command context type to use.
-    /// </typeparam>
+    /// <inheritdoc/>
     public sealed class CommandServiceBuilder<TContext>
+        : ICommandServiceBuilder<TContext>
         where TContext : class, ICommandContext<TContext>
     {
         private readonly List<PipelineCallback> _pipelines;
         private readonly List<ModuleInfo> _modules;
 
         /// <summary>
-        /// Creates a new CommandServiceBuilder for the given context
+        /// Creates a new <see cref="CommandServiceBuilder&lt;TContext&gt;"/>
+        /// for the given context.
         /// </summary>
         public CommandServiceBuilder()
         {
@@ -79,14 +75,15 @@ namespace Finite.Commands
 
         /// <summary>
         /// Adds a command parser to the command service.
-        /// <par>
-        /// There should only ever be one command parser, or else conflicts
-        /// may arise.
-        /// </par>
         /// </summary>
-        /// <typeparam name="TParser"></typeparam>
-        /// <returns></returns>
-        public CommandServiceBuilder<TContext> AddCommandParser<TParser>()
+        /// <typeparam name="TParser">
+        /// The parser to add.
+        /// </typeparam>
+        /// <returns>
+        /// Returns a <see cref="ICommandServiceBuilder&lt;TContext&gt;"/> for
+        /// chaining calls.
+        /// </returns>
+        public ICommandServiceBuilder<TContext> AddCommandParser<TParser>()
             where TParser : class, ICommandParser
         {
             var factory = ActivatorUtilities.CreateFactory(
@@ -102,7 +99,7 @@ namespace Finite.Commands
                 {
                     await parser.ParseAsync<TContext>(ctx)
                         .ConfigureAwait(false);
-                    
+
                     return await next().ConfigureAwait(false);
                 }
                 finally
@@ -126,14 +123,46 @@ namespace Finite.Commands
         /// </returns>
         public CommandServiceBuilder<TContext> AddModule<TModule>()
             where TModule : ModuleBase<TContext>
-        {
-            if (!ClassBuilder.IsValidModule<TModule, TContext>())
-                throw new ArgumentException(
-                    $"Cannot build {typeof(TModule).Name} " +
-                    "as it is not a valid module.");
+            => AddModule(typeof(TModule));
 
-            var builtModule = ClassBuilder.Build<TModule, TContext>();
+        /// <summary>
+        /// Adds a typed module to the command service. The module must use the
+        /// same context type as the current builder.
+        /// </summary>
+        /// <param name="moduleType">
+        /// The type of the module to add.
+        /// </typeparam>
+        /// <returns>
+        /// <code>this</code>
+        /// </returns>
+        public CommandServiceBuilder<TContext> AddModule(Type moduleType)
+        {
+            var builtModule = ClassBuilder.Build<TContext>(moduleType);
             _modules.Add(builtModule);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Adds an existing module to the command service. The module must use
+        /// the same context type as the current builder.
+        /// </summary>
+        /// <param name="module">
+        /// The module to add.
+        /// </param>
+        /// <returns>
+        /// <code>this</code>
+        /// </returns>
+        public CommandServiceBuilder<TContext> AddModule(ModuleInfo module)
+        {
+            if (!module.ContextType.IsAssignableFrom(typeof(TContext)))
+                throw new ArgumentException(
+                    $"{typeof(TContext).FullName} does not inherit or " +
+                    $"implement {module.ContextType.FullName}, so cannot be " +
+                    "added to the built command service.",
+                    nameof(module));
+
+            _modules.Add(module);
 
             return this;
         }
@@ -148,5 +177,35 @@ namespace Finite.Commands
         {
             return new CommandService<TContext>(_pipelines, _modules);
         }
+
+        /// <inheritdoc/>
+        ICommandServiceBuilder<TContext> ICommandServiceBuilder<TContext>
+            .AddPipeline(PipelineCallback pipeline)
+            => AddPipeline(pipeline);
+
+        /// <inheritdoc/>
+        ICommandServiceBuilder<TContext> ICommandServiceBuilder<TContext>
+            .AddPipeline<TPipeline>()
+            => AddPipeline<TPipeline>();
+
+        /// <inheritdoc/>
+        ICommandServiceBuilder<TContext> ICommandServiceBuilder<TContext>
+            .AddModule<TModule>()
+            => AddModule<TModule>();
+
+        /// <inheritdoc/>
+        ICommandServiceBuilder<TContext> ICommandServiceBuilder<TContext>
+            .AddModule(Type moduleType)
+            => AddModule(moduleType);
+
+        /// <inheritdoc/>
+        ICommandServiceBuilder<TContext> ICommandServiceBuilder<TContext>
+            .AddModule(ModuleInfo module)
+            => AddModule(module);
+
+        /// <inheritdoc/>
+        CommandService<TContext> ICommandServiceBuilder<TContext>
+            .BuildCommandService()
+            => BuildCommandService();
     }
 }

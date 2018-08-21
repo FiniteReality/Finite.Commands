@@ -16,6 +16,7 @@ namespace Finite.Commands
         private readonly IReadOnlyCollection<Attribute> _attributes;
         private readonly IReadOnlyCollection<ParameterInfo> _parameters;
         private readonly ModuleInfo _module;
+        private readonly Type _contextType;
 
         /// <summary>
         /// A collection of aliases used to invoke the command.
@@ -34,7 +35,13 @@ namespace Finite.Commands
         /// </summary>
         public ModuleInfo Module => _module;
 
+        /// <summary>
+        /// The type of context this command supports.
+        /// </summary>
+        public Type ContextType => _contextType;
+
         internal CommandInfo(ModuleInfo module,
+            Type contextType,
             CommandCallback callback,
             IReadOnlyCollection<string> aliases,
             IReadOnlyCollection<Attribute> attributes,
@@ -45,6 +52,7 @@ namespace Finite.Commands
             _attributes = attributes;
 
             _module = module;
+            _contextType = contextType;
 
             var builtParameters = ImmutableArray
                 .CreateBuilder<ParameterInfo>(parameters.Count);

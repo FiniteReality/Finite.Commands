@@ -120,15 +120,19 @@ namespace Finite.Commands
         /// Builds a <see cref="CommandInfo"/> object with the given
         /// properties.
         /// </summary>
+        /// <typeparam name="TContext">
+        /// The type of context this command supports.
+        /// </typeparam>
         /// <returns>
         /// The built command.
         /// </returns>
-        public CommandInfo Build()
-            => Build(null);
+        public CommandInfo Build<TContext>()
+            where TContext : class, ICommandContext
+            => Build(null, typeof(TContext));
 
-        internal CommandInfo Build(ModuleInfo module)
+        internal CommandInfo Build(ModuleInfo module, Type contextType)
         {
-            return new CommandInfo(module, Callback,
+            return new CommandInfo(module, contextType, Callback,
                 Aliases, Attributes, Parameters);
         }
     }

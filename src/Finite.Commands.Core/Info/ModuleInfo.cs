@@ -15,6 +15,7 @@ namespace Finite.Commands
         private readonly IReadOnlyCollection<ModuleInfo> _submodules;
         private readonly IReadOnlyCollection<CommandInfo> _commands;
         private readonly ModuleInfo _module;
+        private readonly Type _contextType;
 
         /// <summary>
         /// A collection of aliases used to invoke this module.
@@ -41,7 +42,13 @@ namespace Finite.Commands
         /// </summary>
         public ModuleInfo Module => _module;
 
+        /// <summary>
+        /// The context type this module supports.
+        /// </summary>
+        public Type ContextType => _contextType;
+
         internal ModuleInfo(ModuleInfo parent,
+            Type contextType,
             IReadOnlyCollection<string> aliases,
             IReadOnlyCollection<Attribute> attributes,
             IReadOnlyCollection<ModuleBuilder> submodules,
@@ -51,19 +58,20 @@ namespace Finite.Commands
             _attributes = attributes;
 
             _module = Module;
+            _contextType = contextType;
 
             var builtSubmodules = ImmutableArray
                 .CreateBuilder<ModuleInfo>(submodules.Count);
             foreach (var module in submodules)
             {
-                builtSubmodules.Add(module.Build(this));
+                builtSubmodules.Add(module.Build(this, contextType));
             }
 
             var builtCommands = ImmutableArray
                 .CreateBuilder<CommandInfo>(commands.Count);
             foreach (var command in commands)
             {
-                builtCommands.Add(command.Build(this));
+                builtCommands.Add(command.Build(this, contextType));
             }
 
             _submodules = builtSubmodules.ToImmutable();
