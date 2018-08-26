@@ -6,6 +6,10 @@ namespace Finite.Commands.Tests
 {
     public class CommandMapTests
     {
+        private static CommandInfo CreateCommand()
+            => new CommandInfo(null, null, null, null, null,
+                Array.Empty<ParameterBuilder>());
+
         [Theory]
         [InlineData("nonNested")]
         [InlineData("nested", "command")]
@@ -13,10 +17,8 @@ namespace Finite.Commands.Tests
         void AddRemove(params string[] path)
         {
             var map = new CommandMap();
-            var testCommand = new CommandInfo(null, null, null, null, null,
-                Array.Empty<ParameterBuilder>());
-            var testCommand2 = new CommandInfo(null, null, null, null, null,
-                Array.Empty<ParameterBuilder>());
+            var testCommand = CreateCommand();
+            var testCommand2 = CreateCommand();
 
             Assert.True(map.AddCommand(path, testCommand));
             Assert.True(map.AddCommand(path, testCommand2));
@@ -39,10 +41,8 @@ namespace Finite.Commands.Tests
             string[] searchPath, string[] invalidSearchPath)
         {
             var map = new CommandMap();
-            var testCommand = new CommandInfo(null, null, null, null, null,
-                Array.Empty<ParameterBuilder>());
-            var testCommand2 = new CommandInfo(null, null, null, null, null,
-                Array.Empty<ParameterBuilder>());
+            var testCommand = CreateCommand();
+            var testCommand2 = CreateCommand();
 
             Assert.True(map.AddCommand(command1Path, testCommand));
             Assert.True(map.AddCommand(command2Path, testCommand2));
@@ -95,8 +95,7 @@ namespace Finite.Commands.Tests
             string searchQuery, int expectedQueryResults)
         {
             var map = new CommandMap();
-            var testCommand = new CommandInfo(null, null, null, null, null,
-                Array.Empty<ParameterBuilder>());
+            var testCommand = CreateCommand();
 
             foreach (var alias in aliases)
             {

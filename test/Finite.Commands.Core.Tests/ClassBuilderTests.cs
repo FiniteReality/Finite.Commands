@@ -16,10 +16,19 @@ namespace Finite.Commands.Tests
                 .IsValidModule<ValidTestModule, TestContext>());
 
             Assert.False(ClassBuilder
-                .IsValidModule<InvalidTestModule, TestContext>());
+                .IsValidModule<InvalidTestModuleNoCommands, TestContext>());
 
             Assert.False(ClassBuilder
-                .IsValidModule<InvalidTestModuleBadReturnType, TestContext>());
+                .IsValidModule<InvalidTestModuleBadCommandSignature,
+                    TestContext>());
+
+            Assert.False(ClassBuilder
+                .IsValidModule<InvalidTestModuleBadExecutingCallbackSignature,
+                    TestContext>());
+
+            Assert.False(ClassBuilder
+                .IsValidModule<InvalidTestModuleBadBuildingCallbackSignature,
+                    TestContext>());
         }
 
         [Fact]
@@ -66,64 +75,45 @@ namespace Finite.Commands.Tests
                     case "Task<ICommandResult>":
                         Assert.Null(result);
                         break;
-                    case "Task<TestResult>":
+                    case "Task<TestResultUnsuccessful>":
                         Assert.NotNull(result);
-                        Assert.IsType(typeof(TestResult), result);
+                        Assert.IsType(typeof(TestResultUnsuccessful), result);
                         Assert.False(result.IsSuccess);
+                        break;
+                    case "Task<TestResultSuccessful>":
+                        Assert.NotNull(result);
+                        Assert.IsType(typeof(TestResultSuccessful), result);
+                        Assert.True(result.IsSuccess);
                         break;
                 }
             }
         }
-    }
 
-    internal class TestContext : ICommandContext
-    {
-        public string Message { get; set; }
-        public string Author { get; set; }
-    }
+        private class ModuleBuildTestModule : ModuleBase<TestContext>
+        {
+            [Command("void")]
+            public void TestCommandReturningVoid()
+            { }
 
-    internal class TestResult : IResult
-    {
-        public bool IsSuccess
-            => false;
-    }
+            [Command("Task")]
+            public Task TestCommandReturningTask()
+                => Task.CompletedTask;
 
-    internal class ModuleBuildTestModule : ModuleBase<TestContext>
-    {
-        [Command("void")]
-        public void TestCommandReturningVoid()
-        { }
+            [Command("Task<ICommandResult>")]
+            public Task<IResult> TestCommandReturningTaskICommandResult()
+                => Task.FromResult<IResult>(null);
 
-        [Command("Task")]
-        public Task TestCommandReturningTask()
-            => Task.CompletedTask;
+            [Command("Task<TestResultUnsuccessful>")]
+            public Task<TestResultUnsuccessful>
+                TestCommandReturningTaskTestResultUnsuccessful()
+                => Task.FromResult<TestResultUnsuccessful>(
+                    new TestResultUnsuccessful());
 
-        [Command("Task<ICommandResult>")]
-        public Task<IResult> TestCommandReturningTaskICommandResult()
-            => Task.FromResult<IResult>(null);
-
-        [Command("Task<TestResult>")]
-        public Task<TestResult>
-            TestCommandReturningTaskTestResult()
-            => Task.FromResult<TestResult>(new TestResult());
-    }
-
-    internal class ValidTestModule : ModuleBase<TestContext>
-    {
-        [Command("derp")]
-        public void TestCommand()
-        { }
-    }
-
-    internal class InvalidTestModule : ModuleBase<TestContext>
-    {
-
-    }
-
-    internal class InvalidTestModuleBadReturnType : ModuleBase<TestContext>
-    {
-        [Command("derp")]
-        public int BadReturnType()
-            => 1;
+            [Command("Task<TestResultSuccessful>")]
+            public Task<TestResultSuccessful>
+                TestCommandReturningTaskTestResultSuccessful()
+                => Task.FromResult<TestResultSuccessful>(
+                    new TestResultSuccessful());
+        }
     }
 }

@@ -23,7 +23,8 @@ namespace Finite.Commands
     /// An object indicating the command's success.
     /// </returns>
     public delegate Task<IResult> CommandCallback(CommandInfo command,
-        ICommandContext context, IServiceProvider services, object[] arguments);
+        ICommandContext context, IServiceProvider services,
+        object[] arguments);
 
     /// <summary>
     /// A callback invoked when a module is being built.

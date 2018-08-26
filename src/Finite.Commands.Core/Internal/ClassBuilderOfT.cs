@@ -12,16 +12,20 @@ namespace Finite.Commands
     internal static class ClassBuilder<TContext>
         where TContext : class, ICommandContext
     {
-        private static readonly TypeInfo _VoidTypeInfo =
+        private static readonly TypeInfo VoidTypeInfo =
             typeof(void).GetTypeInfo();
-        private static readonly TypeInfo _NonGenericTaskTypeInfo =
+        private static readonly TypeInfo NonGenericTaskTypeInfo =
             typeof(Task).GetTypeInfo();
-        private static readonly TypeInfo _GenericTaskTypeInfo =
+        private static readonly TypeInfo GenericTaskTypeInfo =
             typeof(Task<>).GetTypeInfo();
-        private static readonly TypeInfo _ICommandResultTypeInfo =
+        private static readonly TypeInfo ICommandResultTypeInfo =
             typeof(IResult).GetTypeInfo();
-        private static readonly TypeInfo _ModuleBaseTypeInfo =
+        private static readonly TypeInfo ModuleBaseTypeInfo =
             typeof(ModuleBase<TContext>).GetTypeInfo();
+        private static readonly MethodInfo OnBuildingCallbackMethodInfo =
+            typeof(OnBuildingCallback).GetMethod("Invoke");
+        private static readonly MethodInfo OnExecutingCallbackMethodInfo =
+            typeof(OnExecutingCallback).GetMethod("Invoke");
 
         private static readonly ConcurrentDictionary<Type,
             Func<Task, IResult>> _compiledResultGetters =
@@ -32,24 +36,63 @@ namespace Finite.Commands
 
         public static bool IsValidModuleDefinition(TypeInfo type)
         {
-            return _ModuleBaseTypeInfo.IsAssignableFrom(type)
-                && type.DeclaredMethods.Any(IsValidCommandDefinition);
+            bool HasValidCallbacks()
+            {
+                var buildCallbacksValid = type
+                    .GetMethods(BindingFlags.Public | BindingFlags.Static)
+                    .Where(x =>
+                        x.GetCustomAttribute<OnBuildingAttribute>() != null)
+                    .Select(IsValidOnBuildingDefinition)
+                    .All(x => x);
+
+                var execCallbacksValid = type
+                    .GetMethods(BindingFlags.Public | BindingFlags.Static)
+                    .Where(x =>
+                        x.GetCustomAttribute<OnExecutingAttribute>() != null)
+                    .Select(IsValidOnExecutingDefinition)
+                    .All(x => x);
+
+                return buildCallbacksValid && execCallbacksValid;
+            }
+
+            return ModuleBaseTypeInfo.IsAssignableFrom(type)
+                && type.DeclaredMethods.Any(IsValidCommandDefinition)
+                && HasValidCallbacks();
         }
 
         public static bool IsValidCommandDefinition(MethodInfo method)
         {
             bool IsValidReturnType(Type returnType)
             {
-                return _VoidTypeInfo == returnType
-                    || _NonGenericTaskTypeInfo == returnType
+                return returnType == VoidTypeInfo
+                    || returnType == NonGenericTaskTypeInfo
                     || (returnType.IsConstructedGenericType
-                        && _ICommandResultTypeInfo.IsAssignableFrom(
+                        && ICommandResultTypeInfo.IsAssignableFrom(
                             returnType.GetGenericArguments().First()));
             }
 
             return method.IsPublic
                 && method.GetCustomAttribute<CommandAttribute>() != null
                 && IsValidReturnType(method.ReturnType);
+        }
+
+        public static bool IsValidOnExecutingDefinition(MethodInfo method)
+        {
+            return method.GetCustomAttribute<OnExecutingAttribute>() != null
+                && method.ReturnType
+                    == OnExecutingCallbackMethodInfo.ReturnType
+                && GetMatchingArgumentTypes(
+                    OnExecutingCallbackMethodInfo, method)
+                    .All(x => x);
+        }
+
+        public static bool IsValidOnBuildingDefinition(MethodInfo method)
+        {
+            return method.GetCustomAttribute<OnBuildingAttribute>() != null
+                && method.ReturnType == OnBuildingCallbackMethodInfo.ReturnType
+                && GetMatchingArgumentTypes(
+                    OnBuildingCallbackMethodInfo, method)
+                    .All(x => x);
         }
 
         public static ModuleInfo Build(TypeInfo type)
@@ -189,8 +232,7 @@ namespace Finite.Commands
         {
             var method = type.GetMethods(
                 BindingFlags.Public | BindingFlags.Static)
-                .SingleOrDefault(x =>
-                    x.GetCustomAttribute<OnBuildingAttribute>() != null);
+                .FirstOrDefault(IsValidOnBuildingDefinition);
 
             if (method != null)
                 return method.CreateDelegate(
@@ -204,8 +246,7 @@ namespace Finite.Commands
         {
             var method = type.GetMethods(
                 BindingFlags.Public | BindingFlags.Instance)
-                .SingleOrDefault(x =>
-                    x.GetCustomAttribute<OnExecutingAttribute>() != null);
+                .FirstOrDefault(IsValidOnExecutingDefinition);
 
             if (method != null)
                 return (obj, info) =>
@@ -236,5 +277,13 @@ namespace Finite.Commands
                     yield return method;
             }
         }
+
+        private static IEnumerable<bool> GetMatchingArgumentTypes(
+            MethodInfo expected, MethodInfo actual)
+            => expected.GetParameters()
+                .Join(actual.GetParameters(),
+                x => x.Position, y => y.Position,
+                (expectedParam, actualParam) =>
+                    expectedParam.ParameterType == actualParam.ParameterType);
     }
 }
