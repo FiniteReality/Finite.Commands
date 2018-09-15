@@ -24,7 +24,11 @@ namespace Finite.Commands
         /// <summary>
         /// A quote was read where it was not expected
         /// </summary>
-        UnexpectedQuote
+        UnexpectedQuote,
+        /// <summary>
+        /// The tokenizer finished in a state that wasn't expected
+        /// </summary>
+        InvalidState
     }
 
     public partial class DefaultCommandParser
@@ -212,12 +216,8 @@ namespace Finite.Commands
             result.Add(paramBuilder.ToString());
 
             if (state != TokenizerState.Normal)
-            {
-                throw new TokenizerException(
-                    "The tokenizer did not finish in the " +
-                    $"{nameof(TokenizerState.Normal)} state.",
-                    commandText, commandText.Length);
-            }
+                return Failure(TokenizerFailureReason.InvalidState,
+                    commandText.Length);
 
             return new TokenizerResult(result.ToArray());
         }
