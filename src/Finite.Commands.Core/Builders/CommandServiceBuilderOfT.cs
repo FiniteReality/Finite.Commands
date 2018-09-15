@@ -97,8 +97,11 @@ namespace Finite.Commands
 
                 try
                 {
-                    await parser.ParseAsync<TContext>(ctx)
+                    var result = await parser.ParseAsync<TContext>(ctx)
                         .ConfigureAwait(false);
+
+                    if (!result.IsSuccess)
+                        return result;
 
                     return await next().ConfigureAwait(false);
                 }

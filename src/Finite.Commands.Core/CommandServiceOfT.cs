@@ -90,16 +90,8 @@ namespace Finite.Commands
             var execContext = new CommandExecutionContext(this, context,
                 services);
 
-            async Task<IResult> ExecuteCommand(CommandExecutionContext ctx)
-            {
-                if (ctx.Command == null)
-                {
-                    return CommandNotFoundResult.Instance;
-                }
-
-                return await ctx.Command.ExecuteAsync(ctx)
-                    .ConfigureAwait(false);
-            }
+            Task<IResult> ExecuteCommand(CommandExecutionContext ctx)
+                => ctx.Command.ExecuteAsync(ctx);
 
             Func<Task<IResult>> GetPipelineFunc(
                 CommandExecutionContext ctx, int pos)

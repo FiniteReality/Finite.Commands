@@ -17,9 +17,10 @@ namespace Finite.Commands
         /// The context type of the command.
         /// </typeparam>
         /// <returns>
-        /// A Task which completes when the command has finished parsing.
+        /// A <see cref="Task&lt;T&gt;"/> which completes when the command has
+        /// finished parsing.
         /// </returns>
-        Task ParseAsync<TContext>(
+        Task<IResult> ParseAsync<TContext>(
             CommandExecutionContext executionContext)
             where TContext : class, ICommandContext<TContext>;
     }

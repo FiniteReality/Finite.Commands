@@ -4,6 +4,29 @@ using System.Text;
 
 namespace Finite.Commands
 {
+    /// <summary>
+    /// A set of reasons why the <see cref="DefaultCommandParser"/> may fail.
+    /// </summary>
+    public enum TokenizerFailureReason
+    {
+        /// <summary>
+        /// An escape sequence was left unfinished
+        /// </summary>
+        UnfinishedEscapeSequence,
+        /// <summary>
+        /// An escape sequence was invalid
+        /// </summary>
+        InvalidEscapeSequence,
+        /// <summary>
+        /// A quoted string was left unfinished
+        /// </summary>
+        UnfinishedQuotedString,
+        /// <summary>
+        /// A quote was read where it was not expected
+        /// </summary>
+        UnexpectedQuote
+    }
+
     public partial class DefaultCommandParser
     {
         private enum TokenizerState
@@ -101,9 +124,16 @@ namespace Finite.Commands
         /// An array of strings representing the individual tokens contained in
         /// <paramref name="commandText"/>.
         /// </returns>
-        protected virtual string[] Tokenize(string commandText,
+        protected virtual TokenizerResult Tokenize(string commandText,
             int prefixLength)
         {
+            TokenizerResult Failure(TokenizerFailureReason reason,
+                int position)
+            {
+                return new TokenizerResult((int)reason, commandText,
+                    position);
+            }
+
             if (prefixLength >= commandText.Length)
                 throw new ArgumentOutOfRangeException(
                     nameof(prefixLength));
@@ -127,15 +157,13 @@ namespace Finite.Commands
                         break;
                     case TokenizerState.Normal
                         when IsEscapeCharacter(c) && isLastCharacter:
-                        throw new TokenizerException(
-                            "An escape sequence was left unfinished",
-                            commandText, i);
+                        return Failure(
+                            TokenizerFailureReason.UnfinishedEscapeSequence,
+                            i);
                     case TokenizerState.Normal
                         when IsQuoteCharacter(c):
-                        throw new TokenizerException(
-                            "A quote must either be escaped or " +
-                            "preceeded by a space to begin a quoted string",
-                            commandText, i);
+                        return Failure(
+                            TokenizerFailureReason.UnexpectedQuote, i);
                     case TokenizerState.Normal
                         when IsEscapeCharacter(c):
                         state = TokenizerState.EscapeCharacter;
@@ -146,15 +174,13 @@ namespace Finite.Commands
                         state = TokenizerState.Normal;
                         goto default;
                     case TokenizerState.EscapeCharacter:
-                        throw new TokenizerException(
-                            $"The character '{c}' cannot be escaped",
-                            commandText, i);
+                        return Failure(
+                            TokenizerFailureReason.InvalidEscapeSequence, i);
 
                     case TokenizerState.ParameterSeparator
                         when IsQuoteCharacter(c) && isLastCharacter:
-                        throw new TokenizerException(
-                            "A quoted string was not finished",
-                            commandText, i);
+                        return Failure(
+                            TokenizerFailureReason.UnfinishedQuotedString, i);
                     case TokenizerState.ParameterSeparator
                         when IsQuoteCharacter(c):
                         state = TokenizerState.QuotedString;
@@ -173,9 +199,8 @@ namespace Finite.Commands
                         break;
                     case TokenizerState.QuotedString
                         when isLastCharacter:
-                        throw new TokenizerException(
-                            "A quoted string was not finished",
-                            commandText, i);
+                        return Failure(
+                            TokenizerFailureReason.UnfinishedQuotedString, i);
 
                     default:
                         paramBuilder.Append(c);
@@ -194,7 +219,7 @@ namespace Finite.Commands
                     commandText, commandText.Length);
             }
 
-            return result.ToArray();
+            return new TokenizerResult(result.ToArray());
         }
     }
 }

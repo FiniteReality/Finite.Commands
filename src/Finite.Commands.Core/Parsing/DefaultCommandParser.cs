@@ -109,12 +109,17 @@ namespace Finite.Commands
         }
 
         /// <inheritdoc/>
-        public virtual async Task ParseAsync<TContext>(
+        public virtual async Task<IResult> ParseAsync<TContext>(
             CommandExecutionContext executionContext)
             where TContext : class, ICommandContext<TContext>
         {
-            string[] tokenStream = Tokenize(executionContext.Context.Message,
+            var result = Tokenize(executionContext.Context.Message,
                 executionContext.PrefixLength);
+
+            if (!result.IsSuccess)
+                return result;
+
+            string[] tokenStream = result.TokenStream;
             var commands = executionContext.CommandService;
 
             foreach (var match in commands.FindCommands(tokenStream))
@@ -125,12 +130,15 @@ namespace Finite.Commands
 
                 if (success)
                 {
+                    // TODO: maybe I should migrate this to a parser result?
                     executionContext.Command = match.Command;
                     executionContext.Arguments = arguments;
 
-                    break;
+                    return SuccessResult.Instance;
                 }
             }
+
+            return CommandNotFoundResult.Instance;
         }
     }
 }
