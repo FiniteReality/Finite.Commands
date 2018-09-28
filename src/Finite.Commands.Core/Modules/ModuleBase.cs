@@ -17,9 +17,17 @@ namespace Finite.Commands
         /// </summary>
         public TContext Context { get; private set; }
 
+        protected virtual void OnExecuting(CommandInfo command)
+        { }
+
         internal void SetContext(ICommandContext context)
         {
             Context = (TContext)context;
+        }
+
+        internal void CallOnExecuting(CommandInfo command)
+        {
+            OnExecuting(command);
         }
     }
 }

@@ -23,10 +23,6 @@ namespace Finite.Commands.Tests
                     TestContext>());
 
             Assert.False(ClassBuilder
-                .IsValidModule<InvalidTestModuleBadExecutingCallbackSignature,
-                    TestContext>());
-
-            Assert.False(ClassBuilder
                 .IsValidModule<InvalidTestModuleBadBuildingCallbackSignature,
                     TestContext>());
         }
@@ -91,10 +87,6 @@ namespace Finite.Commands.Tests
 
         private class ModuleBuildTestModule : ModuleBase<TestContext>
         {
-            [Command("void")]
-            public void TestCommandReturningVoid()
-            { }
-
             [Command("Task")]
             public Task TestCommandReturningTask()
                 => Task.CompletedTask;

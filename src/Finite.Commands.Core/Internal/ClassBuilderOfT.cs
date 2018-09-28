@@ -12,20 +12,16 @@ namespace Finite.Commands
     internal static class ClassBuilder<TContext>
         where TContext : class, ICommandContext
     {
-        private static readonly TypeInfo VoidTypeInfo =
-            typeof(void).GetTypeInfo();
         private static readonly TypeInfo NonGenericTaskTypeInfo =
             typeof(Task).GetTypeInfo();
         private static readonly TypeInfo GenericTaskTypeInfo =
             typeof(Task<>).GetTypeInfo();
-        private static readonly TypeInfo ICommandResultTypeInfo =
+        private static readonly TypeInfo IResultTypeInfo =
             typeof(IResult).GetTypeInfo();
         private static readonly TypeInfo ModuleBaseTypeInfo =
             typeof(ModuleBase<TContext>).GetTypeInfo();
         private static readonly MethodInfo OnBuildingCallbackMethodInfo =
             typeof(OnBuildingCallback).GetMethod("Invoke");
-        private static readonly MethodInfo OnExecutingCallbackMethodInfo =
-            typeof(OnExecutingCallback).GetMethod("Invoke");
 
         private static readonly ConcurrentDictionary<Type,
             Func<Task, IResult>> _compiledResultGetters =
@@ -36,54 +32,33 @@ namespace Finite.Commands
 
         public static bool IsValidModuleDefinition(TypeInfo type)
         {
-            bool HasValidCallbacks()
-            {
-                var buildCallbacksValid = type
+            return ModuleBaseTypeInfo.IsAssignableFrom(type)
+                && type.DeclaredMethods.Any(IsValidCommandDefinition)
+                && type
                     .GetMethods(BindingFlags.Public | BindingFlags.Static)
                     .Where(x =>
                         x.GetCustomAttribute<OnBuildingAttribute>() != null)
                     .Select(IsValidOnBuildingDefinition)
                     .All(x => x);
-
-                var execCallbacksValid = type
-                    .GetMethods(BindingFlags.Public | BindingFlags.Static)
-                    .Where(x =>
-                        x.GetCustomAttribute<OnExecutingAttribute>() != null)
-                    .Select(IsValidOnExecutingDefinition)
-                    .All(x => x);
-
-                return buildCallbacksValid && execCallbacksValid;
-            }
-
-            return ModuleBaseTypeInfo.IsAssignableFrom(type)
-                && type.DeclaredMethods.Any(IsValidCommandDefinition)
-                && HasValidCallbacks();
         }
 
         public static bool IsValidCommandDefinition(MethodInfo method)
         {
             bool IsValidReturnType(Type returnType)
             {
-                return returnType == VoidTypeInfo
-                    || returnType == NonGenericTaskTypeInfo
+                return returnType == NonGenericTaskTypeInfo
+                    || IResultTypeInfo.IsAssignableFrom(returnType)
                     || (returnType.IsConstructedGenericType
-                        && ICommandResultTypeInfo.IsAssignableFrom(
-                            returnType.GetGenericArguments().First()));
+                        && returnType
+                            .GetGenericTypeDefinition() == GenericTaskTypeInfo
+                        && IResultTypeInfo.IsAssignableFrom(
+                            returnType.GetGenericArguments().First())
+                        );
             }
 
             return method.IsPublic
                 && method.GetCustomAttribute<CommandAttribute>() != null
                 && IsValidReturnType(method.ReturnType);
-        }
-
-        public static bool IsValidOnExecutingDefinition(MethodInfo method)
-        {
-            return method.GetCustomAttribute<OnExecutingAttribute>() != null
-                && method.ReturnType
-                    == OnExecutingCallbackMethodInfo.ReturnType
-                && GetMatchingArgumentTypes(
-                    OnExecutingCallbackMethodInfo, method)
-                    .All(x => x);
         }
 
         public static bool IsValidOnBuildingDefinition(MethodInfo method)
@@ -178,7 +153,10 @@ namespace Finite.Commands
             var factory = ActivatorUtilities
                 .CreateFactory(method.DeclaringType, Array.Empty<Type>());
 
-            var onExecuting = GetOnExecutingCallback(method.DeclaringType);
+            var invoker = CreateMethodInvoker(method);
+
+            Func<Task, IResult> resultGetter = _compiledResultGetters.GetOrAdd(
+                method.ReturnType, CreateResultGetter);
 
             return async (command, context, services, arguments) =>
             {
@@ -187,20 +165,22 @@ namespace Finite.Commands
 
                 module.SetContext(context);
 
-                if (onExecuting != null)
-                    onExecuting(module, command);
+                module.CallOnExecuting(command);
 
                 try
                 {
-                    var boxedResult = method.Invoke(module, arguments);
+                    var boxedResult = invoker(module, arguments);
+
+                    if (boxedResult is null)
+                        return SuccessResult.Instance;
+
+                    if (boxedResult is IResult result)
+                        return result;
 
                     if (!(boxedResult is Task task))
                         return SuccessResult.Instance;
 
                     await task;
-
-                    var resultGetter = _compiledResultGetters.GetOrAdd(
-                        method.ReturnType, CreateResultGetter);
 
                     return resultGetter(task);
                 }
@@ -215,46 +195,61 @@ namespace Finite.Commands
         private static Func<Task, IResult> CreateResultGetter(Type type)
         {
             // Creates a lambda function which looks similar to this:
-            // (x) => ((Task<TResult>)x).Result
+            // (task) => ((Task<TResult>)task).Result
 
-            var parameter = Expression.Parameter(typeof(Task));
+            var parameter = Expression.Parameter(typeof(Task), "task");
 
             return Expression.Lambda<Func<Task, IResult>>(
                 Expression.Property(
                     Expression.Convert(parameter, type),
                     "Result"),
+                tailCall: true,
                 parameter)
                     .Compile();
+        }
+
+        private static Func<ModuleBase<TContext>, object[], object>
+            CreateMethodInvoker(MethodInfo method)
+        {
+            // Creates a lambda function which looks similar to this:
+            // (target, @params) => (object)((TModule)target.<Method>(
+            //     (T1)@params[0], (T2)@params[1], ..., (TN)@params[N]))
+
+            var target = Expression.Parameter(typeof(ModuleBase<TContext>),
+                "target");
+            var parameters = Expression.Parameter(typeof(object[]), "params");
+
+            var parameterCasts = method.GetParameters()
+                .Select((p, i) => Expression.Convert(
+                    Expression.ArrayIndex(parameters, Expression.Constant(i)),
+                    p.ParameterType));
+
+            return Expression
+                .Lambda<Func<ModuleBase<TContext>, object[], object>>(
+                    Expression.Convert(
+                        Expression.Call(
+                            Expression.Convert(target, method.DeclaringType),
+                            method, parameterCasts),
+                        typeof(object)),
+                    target, parameters)
+                .Compile();
         }
 
         private static OnBuildingCallback
             GetOnBuildingCallback(TypeInfo type)
         {
-            var method = type.GetMethods(
+            var methods = type.GetMethods(
                 BindingFlags.Public | BindingFlags.Static)
-                .FirstOrDefault(IsValidOnBuildingDefinition);
+                .Where(IsValidOnBuildingDefinition)
+                .Select(method => method.CreateDelegate(
+                    typeof(OnBuildingCallback)) as OnBuildingCallback)
+                .ToArray();
 
-            if (method != null)
-                return method.CreateDelegate(
-                    typeof(OnBuildingCallback)) as OnBuildingCallback;
-
-            return null;
-        }
-
-        private static Action<object, CommandInfo>
-            GetOnExecutingCallback(Type type)
-        {
-            var method = type.GetMethods(
-                BindingFlags.Public | BindingFlags.Instance)
-                .FirstOrDefault(IsValidOnExecutingDefinition);
-
-            if (method != null)
-                return (obj, info) =>
+            if (methods.Length > 0)
+                return (module) =>
                 {
-                    var cb = method.CreateDelegate(
-                        typeof(OnExecutingCallback), obj)
-                        as OnExecutingCallback;
-                    cb(info);
+                    foreach (var method in methods)
+                        method(module);
                 };
 
             return null;

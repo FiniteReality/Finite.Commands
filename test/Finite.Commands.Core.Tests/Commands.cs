@@ -23,12 +23,13 @@ namespace Finite.Commands.Tests
     internal class ValidTestModule : ModuleBase<TestContext>
     {
         [Command("derp")]
-        public void TestCommand()
-        { }
+        public Task DoCoolThings()
+            => Task.CompletedTask;
 
-        [OnExecuting]
-        public void OnExecuting(CommandInfo command)
-        { }
+        protected override void OnExecuting(CommandInfo command)
+        {
+            base.OnExecuting(command);
+        }
 
         [OnBuilding]
         public static void OnBuilding(ModuleBuilder builder)
@@ -45,14 +46,6 @@ namespace Finite.Commands.Tests
         [Command("derp")]
         public int BadReturnType()
             => 1;
-    }
-
-    internal class InvalidTestModuleBadExecutingCallbackSignature
-        : ModuleBase<TestContext>
-    {
-        [OnExecuting]
-        public int BadExecuting(int value)
-            => 0;
     }
 
     internal class InvalidTestModuleBadBuildingCallbackSignature
