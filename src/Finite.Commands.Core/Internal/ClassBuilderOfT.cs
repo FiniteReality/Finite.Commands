@@ -155,8 +155,10 @@ namespace Finite.Commands
 
             var invoker = CreateMethodInvoker(method);
 
-            Func<Task, IResult> resultGetter = _compiledResultGetters.GetOrAdd(
-                method.ReturnType, CreateResultGetter);
+            Func<Task, IResult> resultGetter = null;
+            if (NonGenericTaskTypeInfo.IsAssignableFrom(method.ReturnType))
+                resultGetter = _compiledResultGetters.GetOrAdd(
+                    method.ReturnType, CreateResultGetter);
 
             return async (command, context, services, arguments) =>
             {
