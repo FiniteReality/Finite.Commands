@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 
 namespace Finite.Commands
 {
@@ -10,42 +9,35 @@ namespace Finite.Commands
     /// </summary>
     public sealed class ModuleInfo
     {
-        private readonly IReadOnlyCollection<string> _aliases;
-        private readonly IReadOnlyCollection<Attribute> _attributes;
-        private readonly IReadOnlyCollection<ModuleInfo> _submodules;
-        private readonly IReadOnlyCollection<CommandInfo> _commands;
-        private readonly ModuleInfo _module;
-        private readonly Type _contextType;
-
         /// <summary>
         /// A collection of aliases used to invoke this module.
         /// </summary>
-        public IReadOnlyCollection<string> Aliases => _aliases;
+        public IReadOnlyCollection<string> Aliases { get; }
 
         /// <summary>
         /// A collection of attributes applied to this module.
         /// </summary>
-        public IReadOnlyCollection<Attribute> Attributes => _attributes;
+        public IReadOnlyCollection<Attribute> Attributes { get; }
 
         /// <summary>
         /// A collection of submodules of this module.
         /// </summary>
-        public IReadOnlyCollection<ModuleInfo> Submodules => _submodules;
+        public IReadOnlyCollection<ModuleInfo> Submodules { get; }
 
         /// <summary>
         /// A collection of commands registered in this module.
         /// </summary>
-        public IReadOnlyCollection<CommandInfo> Commands => _commands;
+        public IReadOnlyCollection<CommandInfo> Commands { get; }
 
         /// <summary>
         /// The parent module of this module.
         /// </summary>
-        public ModuleInfo Module => _module;
+        public ModuleInfo Module { get; }
 
         /// <summary>
         /// The context type this module supports.
         /// </summary>
-        public Type ContextType => _contextType;
+        public Type ContextType { get; }
 
         internal ModuleInfo(ModuleInfo parent,
             Type contextType,
@@ -54,11 +46,11 @@ namespace Finite.Commands
             IReadOnlyCollection<ModuleBuilder> submodules,
             IReadOnlyCollection<CommandBuilder> commands)
         {
-            _aliases = aliases;
-            _attributes = attributes;
+            Aliases = aliases;
+            Attributes = attributes;
 
-            _module = Module;
-            _contextType = contextType;
+            Module = parent;
+            ContextType = contextType;
 
             var builtSubmodules = ImmutableArray
                 .CreateBuilder<ModuleInfo>(submodules.Count);
@@ -74,8 +66,8 @@ namespace Finite.Commands
                 builtCommands.Add(command.Build(this, contextType));
             }
 
-            _submodules = builtSubmodules.ToImmutable();
-            _commands = builtCommands.ToImmutable();
+            Submodules = builtSubmodules.ToImmutable();
+            Commands = builtCommands.ToImmutable();
         }
     }
 }

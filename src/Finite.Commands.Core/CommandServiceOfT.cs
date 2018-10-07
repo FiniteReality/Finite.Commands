@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Finite.Commands
@@ -49,7 +47,7 @@ namespace Finite.Commands
             IEnumerable<CommandInfo> IterateModule(ModuleInfo module)
             {
                 foreach (var submodule in module.Submodules)
-                    foreach (var command in IterateModule(module))
+                    foreach (var command in IterateModule(submodule))
                         yield return command;
 
                 foreach (var command in module.Commands)
