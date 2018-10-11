@@ -5,10 +5,14 @@ namespace Finite.Commands
     /// </summary>
     public struct CommandNotFoundResult : IResult
     {
+        private static readonly CommandNotFoundResult _instance
+            = new CommandNotFoundResult();
+
         /// <summary>
         /// The singleton instance for CommandNotFoundResult
         /// </summary>
-        public static CommandNotFoundResult Instance { get; } = new CommandNotFoundResult();
+        public static CommandNotFoundResult Instance
+            => _instance;
 
         /// <inheritdoc/>
         public bool IsSuccess
