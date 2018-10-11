@@ -13,7 +13,6 @@ namespace Finite.Commands
         private readonly List<string> _aliases;
         // Attributes of this module
         private readonly List<Attribute> _attributes;
-        private Type _type;
 
         /// <summary>
         /// A collection of aliases of the parameter.
@@ -29,7 +28,7 @@ namespace Finite.Commands
         /// <summary>
         /// The type of this parameter.
         /// </summary>
-        public Type Type => _type;
+        public Type Type { get; private set; }
 
         /// <summary>
         /// Creates a new <see cref="ParameterBuilder"/> with the given name.
@@ -86,7 +85,7 @@ namespace Finite.Commands
         /// </returns>
         public ParameterBuilder WithType(Type type)
         {
-            _type = type;
+            Type = type;
             return this;
         }
 

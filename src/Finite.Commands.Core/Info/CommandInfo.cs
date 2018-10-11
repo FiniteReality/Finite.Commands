@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Finite.Commands
@@ -12,33 +11,28 @@ namespace Finite.Commands
     public sealed class CommandInfo
     {
         private readonly CommandCallback _callback;
-        private readonly IReadOnlyCollection<string> _aliases;
-        private readonly IReadOnlyCollection<Attribute> _attributes;
-        private readonly IReadOnlyCollection<ParameterInfo> _parameters;
-        private readonly ModuleInfo _module;
-        private readonly Type _contextType;
 
         /// <summary>
         /// A collection of aliases used to invoke the command.
         /// </summary>
-        public IReadOnlyCollection<string> Aliases => _aliases;
+        public IReadOnlyCollection<string> Aliases { get; }
         /// <summary>
         /// A collection of attributes applied to the command.
         /// </summary>
-        public IReadOnlyCollection<Attribute> Attributes => _attributes;
+        public IReadOnlyCollection<Attribute> Attributes { get; }
         /// <summary>
         /// A collection of parameters passed to the command.
         /// </summary>
-        public IReadOnlyCollection<ParameterInfo> Parameters => _parameters;
+        public IReadOnlyCollection<ParameterInfo> Parameters { get; }
         /// <summary>
         /// The parent module of this command.
         /// </summary>
-        public ModuleInfo Module => _module;
+        public ModuleInfo Module { get; }
 
         /// <summary>
         /// The type of context this command supports.
         /// </summary>
-        public Type ContextType => _contextType;
+        public Type ContextType { get; }
 
         internal CommandInfo(ModuleInfo module,
             Type contextType,
@@ -48,11 +42,11 @@ namespace Finite.Commands
             IReadOnlyCollection<ParameterBuilder> parameters)
         {
             _callback = callback;
-            _aliases = aliases;
-            _attributes = attributes;
+            Aliases = aliases;
+            Attributes = attributes;
 
-            _module = module;
-            _contextType = contextType;
+            Module = module;
+            ContextType = contextType;
 
             var builtParameters = ImmutableArray
                 .CreateBuilder<ParameterInfo>(parameters.Count);
@@ -61,7 +55,7 @@ namespace Finite.Commands
                 builtParameters.Add(parameter.Build(this));
             }
 
-            _parameters = builtParameters.ToImmutable();
+            Parameters = builtParameters.ToImmutable();
         }
 
         /// <summary>
