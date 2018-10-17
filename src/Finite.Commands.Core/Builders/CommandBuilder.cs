@@ -31,7 +31,7 @@ namespace Finite.Commands
         /// <summary>
         /// A collection of parameters passed to this command.
         /// </summary>
-        public IReadOnlyCollection<ParameterBuilder> Parameters
+        public IReadOnlyList<ParameterBuilder> Parameters
             => _parameters.AsReadOnly();
 
         /// <summary>

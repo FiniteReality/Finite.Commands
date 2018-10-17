@@ -17,6 +17,12 @@ namespace Finite.Commands
         /// </summary>
         public TContext Context { get; private set; }
 
+        /// <summary>
+        /// A callback executed when the module is about to execute a command.
+        /// </summary>
+        /// <param name="command">
+        /// The <see cref="CommandInfo"/> which is about to execute.
+        /// </param>
         protected virtual void OnExecuting(CommandInfo command)
         { }
 

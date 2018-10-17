@@ -134,7 +134,7 @@ namespace Finite.Commands
         /// </summary>
         /// <param name="moduleType">
         /// The type of the module to add.
-        /// </typeparam>
+        /// </param>
         /// <returns>
         /// <code>this</code>
         /// </returns>

@@ -77,7 +77,7 @@ namespace Finite.Commands
         /// </summary>
         /// <param name="moduleType">
         /// The module type to check.
-        /// </typeparam>
+        /// </param>
         /// <typeparam name="TContext">
         /// The context type to check.
         /// </typeparam>
