@@ -37,8 +37,8 @@ namespace Finite.Commands
         /// <summary>
         /// Attempts to deserialize a parameter into a given type
         /// </summary>
-        /// <param name="type">
-        /// The type to deserialize <paramref name="value"/> into.
+        /// <param name="param">
+        /// The parameter to deserialize <paramref name="value"/> for.
         /// </param>
         /// <param name="value">
         /// A string containing the value of the parameter to deserialize.
@@ -49,8 +49,9 @@ namespace Finite.Commands
         /// former value is <code>false</code>.
         /// </returns>
         protected virtual async Task<(bool, object)> TryParseObjectAsync(
-            Type type, string value)
+            ParameterInfo param, string value)
         {
+            var type = param.Type;
             if (type == typeof(string))
                 return (true, value);
 
@@ -91,9 +92,9 @@ namespace Finite.Commands
             int i = 0;
             foreach (var argument in arguments)
             {
-                var argumentInfo = match.Command.Parameters.ElementAt(i);
+                var parameterInfo = match.Command.Parameters[i];
                 var (success, parsed) = await TryParseObjectAsync(
-                    argumentInfo.Type, argument)
+                    parameterInfo, argument)
                     .ConfigureAwait(false);
 
                 if (!success)

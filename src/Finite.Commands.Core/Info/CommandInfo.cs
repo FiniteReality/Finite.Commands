@@ -23,7 +23,7 @@ namespace Finite.Commands
         /// <summary>
         /// A collection of parameters passed to the command.
         /// </summary>
-        public IReadOnlyCollection<ParameterInfo> Parameters { get; }
+        public IReadOnlyList<ParameterInfo> Parameters { get; }
         /// <summary>
         /// The parent module of this command.
         /// </summary>
@@ -39,7 +39,7 @@ namespace Finite.Commands
             CommandCallback callback,
             IReadOnlyCollection<string> aliases,
             IReadOnlyCollection<Attribute> attributes,
-            IReadOnlyCollection<ParameterBuilder> parameters)
+            IReadOnlyList<ParameterBuilder> parameters)
         {
             _callback = callback;
             Aliases = aliases;
