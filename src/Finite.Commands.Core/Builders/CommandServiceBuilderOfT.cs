@@ -84,7 +84,7 @@ namespace Finite.Commands
         /// chaining calls.
         /// </returns>
         public ICommandServiceBuilder<TContext> AddCommandParser<TParser>()
-            where TParser : class, ICommandParser
+            where TParser : class, ICommandParser<TContext>
         {
             var factory = ActivatorUtilities.CreateFactory(
                 typeof(TParser),
@@ -97,8 +97,7 @@ namespace Finite.Commands
 
                 try
                 {
-                    var result = await parser.ParseAsync<TContext>(ctx)
-                        .ConfigureAwait(false);
+                    var result = parser.Parse(ctx);
 
                     if (!result.IsSuccess)
                         return result;

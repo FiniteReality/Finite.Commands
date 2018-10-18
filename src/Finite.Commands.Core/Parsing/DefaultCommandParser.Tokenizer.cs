@@ -5,7 +5,8 @@ using System.Text;
 namespace Finite.Commands
 {
     /// <summary>
-    /// A set of reasons why the <see cref="DefaultCommandParser"/> may fail.
+    /// A set of reasons why the
+    /// <see cref="DefaultCommandParser&lt;TContext&gt;"/> may fail.
     /// </summary>
     public enum TokenizerFailureReason
     {
@@ -31,7 +32,7 @@ namespace Finite.Commands
         InvalidState
     }
 
-    public partial class DefaultCommandParser
+    public partial class DefaultCommandParser<TContext>
     {
         private enum TokenizerState
         {

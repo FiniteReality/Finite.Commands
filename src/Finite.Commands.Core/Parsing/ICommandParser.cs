@@ -5,7 +5,8 @@ namespace Finite.Commands
     /// <summary>
     /// Public interface for implementing a command parser
     /// </summary>
-    public interface ICommandParser
+    public interface ICommandParser<TContext>
+            where TContext : class, ICommandContext<TContext>
     {
         /// <summary>
         /// Parses a command message into a token stream
@@ -13,15 +14,10 @@ namespace Finite.Commands
         /// <param name="executionContext">
         /// The execution context of the command to parse.
         /// </param>
-        /// <typeparam name="TContext">
-        /// The context type of the command.
-        /// </typeparam>
         /// <returns>
-        /// A <see cref="Task&lt;T&gt;"/> which completes when the command has
-        /// finished parsing.
+        /// An <see cref="IResult"/> indicating whether the parse succeeded or
+        /// not.
         /// </returns>
-        Task<IResult> ParseAsync<TContext>(
-            CommandExecutionContext executionContext)
-            where TContext : class, ICommandContext<TContext>;
+        IResult Parse(CommandExecutionContext executionContext);
     }
 }

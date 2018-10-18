@@ -6,32 +6,30 @@ using System.Threading.Tasks;
 namespace Finite.Commands
 {
     /// <summary>
-    /// Default implementation of <see cref="ICommandParser"/> which can be
-    /// subclassed and overriden to provide enhanced features.
+    /// Default implementation of <see cref="ICommandParser&lt;TContext&gt;"/>
+    /// which can be subclassed and overriden to provide enhanced features.
     /// </summary>
-    public partial class DefaultCommandParser : ICommandParser
+    public partial class DefaultCommandParser<TContext>
+        : ICommandParser<TContext>
+        where TContext : class, ICommandContext<TContext>
     {
-        // A list of default parsers for TryParseObjectAsync.
-        // TODO: migrate this to a typereader-style API
-        private readonly Dictionary<Type, Func<string, Task<object>>>
+        // A list of default parsers for TryParseObject.
+        private readonly Dictionary<Type, Func<string, (bool, object)>>
             _defaultParsers
-            = new Dictionary<Type, Func<string, Task<object>>>()
+            = new Dictionary<Type, Func<string, (bool, object)>>()
             {
-                [typeof(sbyte)] = (x) => Task.FromResult<object>(
-                    sbyte.Parse(x)),
-                [typeof(byte)] = (x) => Task.FromResult<object>(byte.Parse(x)),
+                [typeof(sbyte)] = (x) => (sbyte.TryParse(x, out var y), y),
+                [typeof(byte)] = (x) => (byte.TryParse(x, out var y), y),
 
-                [typeof(short)] = (x) => Task.FromResult<object>(
-                    short.Parse(x)),
-                [typeof(ushort)] = (x) => Task.FromResult<object>(
-                    ushort.Parse(x)),
+                [typeof(short)] = (x) => (short.TryParse(x, out var y), y),
+                [typeof(ushort)] = (x) => (ushort.TryParse(x, out var y), y),
 
-                [typeof(int)] = (x) => Task.FromResult<object>(int.Parse(x)),
-                [typeof(uint)] = (x) => Task.FromResult<object>(uint.Parse(x)),
+                [typeof(int)] = (x) => (int.TryParse(x, out var y), y),
+                [typeof(uint)] = (x) => (uint.TryParse(x, out var y), y),
 
-                [typeof(long)] = (x) => Task.FromResult<object>(long.Parse(x)),
-                [typeof(ulong)] = (x) => Task.FromResult<object>(
-                    ulong.Parse(x)),
+                [typeof(long)] = (x) => (long.TryParse(x, out var y), y),
+                [typeof(ulong)] = (x) => (ulong.TryParse(x, out var y), y),
+                [typeof(string)] = (x) => (true, x)
             };
 
         /// <summary>
@@ -43,26 +41,26 @@ namespace Finite.Commands
         /// <param name="value">
         /// A string containing the value of the parameter to deserialize.
         /// </param>
+        /// <param name="result">
+        /// The parsed result, boxed in an object.
+        /// </param>
         /// <returns>
-        /// A tuple containing a <see cref="bool"/> representing success, and a
-        /// <see cref="object"/> which will be null if the
-        /// former value is <code>false</code>.
+        /// A boolean indicating whether the parse was successful or not
         /// </returns>
-        protected virtual async Task<(bool, object)> TryParseObjectAsync(
-            ParameterInfo param, string value)
+        protected virtual bool TryParseObject(
+            ParameterInfo param, string value, out object result)
         {
-            var type = param.Type;
-            if (type == typeof(string))
-                return (true, value);
+            result = null;
 
+            var type = param.Type;
             if (_defaultParsers.TryGetValue(type, out var parser))
             {
-                var result = await parser(value)
-                    .ConfigureAwait(false);
-                return (true, result);
+                var (ok, parsed) = parser(value);
+                result = parsed;
+                return ok;
             }
 
-            return (false, null);
+            return false;
         }
 
         /// <summary>
@@ -71,48 +69,66 @@ namespace Finite.Commands
         /// <param name="match">
         /// The <see cref="CommandMatch"/> to deserialize arguments for.
         /// </param>
+        /// <param name="result">
+        /// The parsed arguments for this match.
+        /// </param>
         /// <returns>
         /// A tuple containing a <see cref="bool"/> representing success, and
         /// an array of parameters which will be <code>null</code> if the
         /// former value is <code>false</code>.
         /// </returns>
-        protected virtual async Task<(bool, object[])>
-            GetArgumentsForMatchAsync(CommandMatch match)
+        protected virtual bool GetArgumentsForMatch(CommandMatch match,
+            out object[] result)
         {
-            var arguments = match.Arguments;
-
-            // Drop extra params silently and assume our parameters are in order
-            // TODO: support remainder params
-            if (match.Arguments.Length > match.Command.Parameters.Count)
-                Array.Resize(ref arguments,
-                    match.Command.Parameters.Count);
-
-            object[] result = new object[arguments.Length];
-
-            int i = 0;
-            foreach (var argument in arguments)
+            bool TryParseMultiple(ParameterInfo argument, int startPos,
+                out object[] parsed)
             {
-                var parameterInfo = match.Command.Parameters[i];
-                var (success, parsed) = await TryParseObjectAsync(
-                    parameterInfo, argument)
-                    .ConfigureAwait(false);
+                parsed = new object[match.Arguments.Length - startPos];
+                for (int i = startPos; i < match.Arguments.Length; i++)
+                {
+                    var ok = TryParseObject(argument, match.Arguments[i],
+                        out var value);
 
-                if (!success)
-                    return (false, null);
+                    if (!ok)
+                        return false;
 
-                result[i] = parsed;
-                i++;
+                    parsed[i - startPos] = value;
+                }
+
+                return true;
             }
 
-            var metExpectedArgumentCount =
-                match.Arguments.Length >= match.Command.Parameters.Count;
-            return (metExpectedArgumentCount, result);
+            var parameters = match.Command.Parameters;
+            result = new object[parameters.Count];
+
+            for (int i = 0; i < parameters.Count; i++)
+            {
+                var argument = parameters[i];
+                if ((i == parameters.Count - 1) &&
+                    argument.Attributes.Any(x => x is ParamArrayAttribute))
+                {
+                    if (!TryParseMultiple(argument, i, out var multiple))
+                        return false;
+    
+                    result[i] = multiple;
+                }
+                else
+                {
+                    var ok = TryParseObject(argument, match.Arguments[i],
+                        out var value);
+
+                    if (!ok)
+                        return false;
+
+                    result[i] = value;
+                }
+            }
+
+            return true;
         }
 
         /// <inheritdoc/>
-        public virtual async Task<IResult> ParseAsync<TContext>(
-            CommandExecutionContext executionContext)
-            where TContext : class, ICommandContext<TContext>
+        public virtual IResult Parse(CommandExecutionContext executionContext)
         {
             var result = Tokenize(executionContext.Context.Message,
                 executionContext.PrefixLength);
@@ -125,11 +141,7 @@ namespace Finite.Commands
 
             foreach (var match in commands.FindCommands(tokenStream))
             {
-                var (success, arguments) = await GetArgumentsForMatchAsync(
-                    match)
-                    .ConfigureAwait(false);
-
-                if (success)
+                if (GetArgumentsForMatch(match, out object[] arguments))
                 {
                     // TODO: maybe I should migrate this to a parser result?
                     executionContext.Command = match.Command;

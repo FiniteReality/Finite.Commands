@@ -28,9 +28,9 @@ namespace Finite.Commands
         /// </summary>
         /// <remarks>
         /// If the current <see cref="TokenizerResult"/> was returned by the
-        /// <see cref="DefaultCommandParser"/>, then you should cast this to
-        /// <see cref="TokenizerFailureReason"/> to retrieve a meaningful value
-        /// from it.
+        /// <see cref="DefaultCommandParser&lt;TContext&gt;"/>, then you should
+        /// cast this to <see cref="TokenizerFailureReason"/> to retrieve a
+        /// meaningful value from it.
         /// </remarks>
         public int? ErrorReason { get; }
 
