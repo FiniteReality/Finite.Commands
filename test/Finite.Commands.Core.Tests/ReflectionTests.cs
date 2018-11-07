@@ -22,7 +22,7 @@ namespace Finite.Commands.Core.Tests
         [Fact]
         void FindCommands()
         {
-            CommandServiceBuilder<TestContext> builder = new CommandServiceBuilder<TestContext>().AddModules(Assembly.GetExecutingAssembly(), null);
+            CommandServiceBuilder<TestContext> builder = new CommandServiceBuilder<TestContext>().AddModules(Assembly.GetExecutingAssembly());
             var cs = builder.BuildCommandService();
 
             Assert.Equal(1, cs.Modules.Count);
