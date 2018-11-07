@@ -20,10 +20,10 @@ namespace Finite.Commands.Extensions
         /// <param name="assembly">Use <see cref="Assembly.GetEntryAssembly"/>.</param>
         /// <param name="services">A service collection, for dependency injection. Currently unused.</param>
         /// <returns>The modified <see cref="CommandServiceBuilder{TContext}"/> for chaining.</returns>
-        public static CommandServiceBuilder<TContext> AddModules<TContext>(this CommandServiceBuilder<TContext> builder, Assembly assembly, IServiceProvider services)
+        public static CommandServiceBuilder<TContext> AddModules<TContext>(this CommandServiceBuilder<TContext> builder, Assembly assembly)
             where TContext : class, ICommandContext<TContext>
         {
-            IReadOnlyList<TypeInfo> types = Search<TContext>(assembly);
+            IEnumerable<TypeInfo> types = assembly.DefinedTypes.Where(x => ClassBuilder.IsValidModule<TContext>(x));
 
             foreach (TypeInfo type in types)
             {
@@ -31,25 +31,6 @@ namespace Finite.Commands.Extensions
             }
 
             return builder;
-        }
-
-        private static IReadOnlyList<TypeInfo> Search<TContext>(Assembly assembly)
-            where TContext : class, ICommandContext<TContext>
-        {
-            var result = new List<TypeInfo>();
-
-            foreach (TypeInfo typeInfo in assembly.DefinedTypes)
-            {
-                if (typeInfo.IsPublic || typeInfo.IsNestedPublic)
-                {
-                    if (ClassBuilder.IsValidModule<TContext>(typeInfo))
-                    {
-                        result.Add(typeInfo);
-                    }
-                }
-            }
-
-            return result;
         }
     }
 }

@@ -11,11 +11,6 @@ namespace Finite.Commands
     {
         private readonly List<PipelineCallback> _pipelines;
 
-        internal CommandServiceBuilder<TContext> AddModules()
-        {
-            throw new NotImplementedException();
-        }
-
         private readonly List<ModuleInfo> _modules;
 
         /// <summary>
