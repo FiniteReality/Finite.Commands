@@ -169,17 +169,6 @@ namespace Finite.Commands
             return this;
         }
 
-        /// <summary>
-        /// Builds the command service with the given pipelines and modules.
-        /// </summary>
-        /// <returns>
-        /// The built <see cref="CommandService&lt;TContext&gt;"/>.
-        /// </returns>
-        public CommandService<TContext> BuildCommandService()
-        {
-            return new CommandService<TContext>(_pipelines, _modules);
-        }
-
         /// <inheritdoc/>
         ICommandServiceBuilder<TContext> ICommandServiceBuilder<TContext>
             .AddPipeline(PipelineCallback pipeline)
@@ -208,6 +197,6 @@ namespace Finite.Commands
         /// <inheritdoc/>
         CommandService<TContext> ICommandServiceBuilder<TContext>
             .BuildCommandService()
-            => BuildCommandService();
+            => new CommandService<TContext>(_pipelines, _modules);
     }
 }
