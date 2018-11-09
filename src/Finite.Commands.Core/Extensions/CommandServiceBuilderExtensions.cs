@@ -23,11 +23,12 @@ namespace Finite.Commands.Extensions
         public static CommandServiceBuilder<TContext> AddModules<TContext>(this CommandServiceBuilder<TContext> builder, Assembly assembly)
             where TContext : class, ICommandContext<TContext>
         {
-            IEnumerable<TypeInfo> types = assembly.DefinedTypes.Where(x => ClassBuilder.IsValidModule<TContext>(x));
-
-            foreach (TypeInfo type in types)
+            foreach (TypeInfo type in assembly.DefinedTypes)
             {
-                builder.AddModule(type);
+                if (ClassBuilder.IsValidModule<TContext>(type))
+                {
+                    builder.AddModule(type);
+                }
             }
 
             return builder;
