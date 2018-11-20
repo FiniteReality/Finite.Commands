@@ -33,14 +33,18 @@ namespace Finite.Commands
             void AddModule(ModuleInfo module, Stack<string> path)
             {
                 if (module.Aliases.Count == 0)
+                {
                     AddCommandsForModule(module, path);
+                }
                 else
+                {
                     foreach (var moduleAlias in module.Aliases)
                     {
                         path.Push(moduleAlias);
                         AddCommandsForModule(module, path);
                         path.Pop();
                     }
+                }
             }
 
             if (modules != null)

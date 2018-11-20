@@ -10,6 +10,7 @@ namespace Finite.Commands
         where TContext : class, ICommandContext<TContext>
     {
         private readonly List<PipelineCallback> _pipelines;
+
         private readonly List<ModuleInfo> _modules;
 
         /// <summary>
