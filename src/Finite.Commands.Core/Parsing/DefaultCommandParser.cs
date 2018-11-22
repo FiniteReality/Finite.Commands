@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Finite.Commands
 {
     /// <summary>
-    /// Default implementation of <see cref="ICommandParser&lt;TContext&gt;"/>
+    /// Default implementation of <see cref="ICommandParser{TContext}"/>
     /// which can be subclassed and overriden to provide enhanced features.
     /// </summary>
     public partial class DefaultCommandParser<TContext>
@@ -47,19 +47,22 @@ namespace Finite.Commands
         /// <returns>
         /// A boolean indicating whether the parse was successful or not
         /// </returns>
-        protected virtual bool TryParseObject(
+        protected virtual bool TryParseObject(ICommandService commands,
             ParameterInfo param, string value, out object result)
         {
-            result = null;
-
-            var type = param.Type;
-            if (_defaultParsers.TryGetValue(type, out var parser))
+            var factory = commands.TypeReaderFactory;
+            if (factory.TryGetTypeReader(param.Type, out var reader))
             {
-                var (ok, parsed) = parser(value);
+                return reader.TryRead(value, out result);
+            }
+            else if (_defaultParsers.TryGetValue(param.Type, out var parser))
+            {
+                var (success, parsed) = parser(value);
                 result = parsed;
-                return ok;
+                return success;
             }
 
+            result = null;
             return false;
         }
 
@@ -77,8 +80,8 @@ namespace Finite.Commands
         /// an array of parameters which will be <code>null</code> if the
         /// former value is <code>false</code>.
         /// </returns>
-        protected virtual bool GetArgumentsForMatch(CommandMatch match,
-            out object[] result)
+        protected virtual bool GetArgumentsForMatch(ICommandService commands,
+            CommandMatch match, out object[] result)
         {
             bool TryParseMultiple(ParameterInfo argument, int startPos,
                 out object[] parsed)
@@ -86,7 +89,7 @@ namespace Finite.Commands
                 parsed = new object[match.Arguments.Length - startPos];
                 for (int i = startPos; i < match.Arguments.Length; i++)
                 {
-                    var ok = TryParseObject(argument, match.Arguments[i],
+                    var ok = TryParseObject(commands, argument, match.Arguments[i],
                         out var value);
 
                     if (!ok)
@@ -114,8 +117,8 @@ namespace Finite.Commands
                 }
                 else
                 {
-                    var ok = TryParseObject(argument, match.Arguments[i],
-                        out var value);
+                    var ok = TryParseObject(commands, argument,
+                        match.Arguments[i], out var value);
 
                     if (!ok)
                         return false;
@@ -141,7 +144,8 @@ namespace Finite.Commands
 
             foreach (var match in commands.FindCommands(tokenStream))
             {
-                if (GetArgumentsForMatch(match, out object[] arguments))
+                if (GetArgumentsForMatch(executionContext.CommandService,
+                    match, out object[] arguments))
                 {
                     // TODO: maybe I should migrate this to a parser result?
                     executionContext.Command = match.Command;

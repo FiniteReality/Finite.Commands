@@ -6,7 +6,7 @@ namespace Finite.Commands
 {
     /// <summary>
     /// A set of reasons why the
-    /// <see cref="DefaultCommandParser&lt;TContext&gt;"/> may fail.
+    /// <see cref="DefaultCommandParser{TContext}"/> may fail.
     /// </summary>
     public enum TokenizerFailureReason
     {

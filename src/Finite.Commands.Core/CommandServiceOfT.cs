@@ -18,19 +18,25 @@ namespace Finite.Commands
         private readonly IReadOnlyList<PipelineCallback> _pipelines;
         private readonly CommandMap _commandMap;
 
-        /// <summary>
-        /// Gets a collection of modules which this command service can use
-        /// </summary>
+        private readonly ITypeReaderFactory _readerFactory;
+
+        /// <inheritdoc/>
         public IReadOnlyCollection<ModuleInfo> Modules
             => _modules;
 
+        /// <inheritdoc/>
+        public ITypeReaderFactory TypeReaderFactory
+            => _readerFactory;
+
         internal CommandService(
             IReadOnlyList<PipelineCallback> pipelines,
-            IReadOnlyList<ModuleInfo> modules)
+            IReadOnlyList<ModuleInfo> modules,
+            ITypeReaderFactory factory)
         {
             _modules = modules;
             _pipelines = pipelines;
             _commandMap = new CommandMap(modules);
+            _readerFactory = factory;
         }
 
         /// <summary>

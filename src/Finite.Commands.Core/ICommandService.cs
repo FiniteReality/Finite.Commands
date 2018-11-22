@@ -10,6 +10,16 @@ namespace Finite.Commands
     public interface ICommandService
     {
         /// <summary>
+        /// Gets a collection of modules which this command service can use
+        /// </summary>
+        IReadOnlyCollection<ModuleInfo> Modules { get; }
+
+        /// <summary>
+        /// Gets the factory used for creating type readers
+        /// </summary>
+        ITypeReaderFactory TypeReaderFactory { get; }
+
+        /// <summary>
         /// Executes any stored pipelines on a context, returning any result
         /// they produce.
         /// </summary>

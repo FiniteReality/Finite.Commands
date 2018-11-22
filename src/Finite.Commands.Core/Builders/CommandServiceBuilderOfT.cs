@@ -4,17 +4,27 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Finite.Commands
 {
-    /// <inheritdoc/>
+    /// <summary>
+    /// A builder which creates instances of
+    /// <see cref="CommandService{TContext}"/>.
+    /// </summary>
+    /// <typeparam name="TContext">
+    /// The command context type to use.
+    /// </typeparam>
     public sealed class CommandServiceBuilder<TContext>
-        : ICommandServiceBuilder<TContext>
         where TContext : class, ICommandContext<TContext>
     {
         private readonly List<PipelineCallback> _pipelines;
 
         private readonly List<ModuleInfo> _modules;
 
+        private bool _addedParser = false,
+            _addedReaders = false;
+
+        private Func<ITypeReaderFactory> _typeReaderFactory;
+
         /// <summary>
-        /// Creates a new <see cref="CommandServiceBuilder&lt;TContext&gt;"/>
+        /// Creates a new <see cref="CommandServiceBuilder{TContext}"/>
         /// for the given context.
         /// </summary>
         public CommandServiceBuilder()
@@ -81,12 +91,16 @@ namespace Finite.Commands
         /// The parser to add.
         /// </typeparam>
         /// <returns>
-        /// Returns a <see cref="ICommandServiceBuilder&lt;TContext&gt;"/> for
+        /// Returns a <see cref="ICommandServiceBuilder{TContext}"/> for
         /// chaining calls.
         /// </returns>
-        public ICommandServiceBuilder<TContext> AddCommandParser<TParser>()
+        public CommandServiceBuilder<TContext> AddCommandParser<TParser>()
             where TParser : class, ICommandParser<TContext>
         {
+            if (_addedParser)
+                throw new InvalidOperationException("Cannot add a parser to a command service which already has one");
+            _addedParser = true;
+
             var factory = ActivatorUtilities.CreateFactory(
                 typeof(TParser),
                 Array.Empty<Type>());
@@ -110,6 +124,53 @@ namespace Finite.Commands
                     (parser as IDisposable)?.Dispose();
                 }
             });
+
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a type reader factory to the command service.
+        /// </summary>
+        /// <typeparam name="TFactory">
+        /// The factory to add.
+        /// </typeparam>
+        /// <returns>
+        /// Returns a <see cref="ICommandServiceBuilder{TContext}"/> for
+        /// chaining calls.
+        /// </returns>
+        public CommandServiceBuilder<TContext> AddTypeReaderFactory<TFactory>()
+            where TFactory : class, ITypeReaderFactory, new()
+        {
+            if (_addedReaders)
+                throw new InvalidOperationException("Cannot add a type reader factory to a command service which already has one");
+            _addedReaders = true;
+
+            _typeReaderFactory = () => new TFactory();
+
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a type reader factory to the command service.
+        /// </summary>
+        /// <typeparam name="TFactory">
+        /// The factory to add.
+        /// </typeparam>
+        /// <param name="createFunc">
+        /// The builder function for the factory
+        /// </param>
+        /// <returns>
+        /// Returns a <see cref="ICommandServiceBuilder{TContext}"/> for
+        /// chaining calls.
+        /// </returns>
+        public CommandServiceBuilder<TContext> AddTypeReaderFactory<TFactory>(Func<TFactory> createFunc)
+            where TFactory : class, ITypeReaderFactory
+        {
+            if (_addedReaders)
+                throw new InvalidOperationException("Cannot add a type reader factory to a command service which already has one");
+            _addedReaders = true;
+
+            _typeReaderFactory = createFunc;
 
             return this;
         }
@@ -170,34 +231,13 @@ namespace Finite.Commands
             return this;
         }
 
-        /// <inheritdoc/>
-        ICommandServiceBuilder<TContext> ICommandServiceBuilder<TContext>
-            .AddPipeline(PipelineCallback pipeline)
-            => AddPipeline(pipeline);
-
-        /// <inheritdoc/>
-        ICommandServiceBuilder<TContext> ICommandServiceBuilder<TContext>
-            .AddPipeline<TPipeline>()
-            => AddPipeline<TPipeline>();
-
-        /// <inheritdoc/>
-        ICommandServiceBuilder<TContext> ICommandServiceBuilder<TContext>
-            .AddModule<TModule>()
-            => AddModule<TModule>();
-
-        /// <inheritdoc/>
-        ICommandServiceBuilder<TContext> ICommandServiceBuilder<TContext>
-            .AddModule(Type moduleType)
-            => AddModule(moduleType);
-
-        /// <inheritdoc/>
-        ICommandServiceBuilder<TContext> ICommandServiceBuilder<TContext>
-            .AddModule(ModuleInfo module)
-            => AddModule(module);
-
-        /// <inheritdoc/>
-        CommandService<TContext> ICommandServiceBuilder<TContext>
-            .BuildCommandService()
-            => new CommandService<TContext>(_pipelines, _modules);
+        /// <summary>
+        /// Builds the command service with the given pipelines and modules.
+        /// </summary>
+        /// <returns>
+        /// The built <see cref="CommandService{TContext}"/>.
+        /// </returns>
+        public CommandService<TContext> BuildCommandService()
+            => new CommandService<TContext>(_pipelines, _modules, _typeReaderFactory());
     }
 }

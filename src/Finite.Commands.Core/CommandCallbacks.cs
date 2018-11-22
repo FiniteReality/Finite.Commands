@@ -5,7 +5,7 @@ namespace Finite.Commands
 {
     /// <summary>
     /// A callback for commands executed through a
-    /// <see cref="CommandService&lt;TContext&gt;"/>.
+    /// <see cref="CommandService{TContext}"/>.
     /// </summary>
     /// <param name="command">
     /// The command which has been executed.</param>
