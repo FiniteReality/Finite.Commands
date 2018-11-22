@@ -238,6 +238,13 @@ namespace Finite.Commands
         /// The built <see cref="CommandService{TContext}"/>.
         /// </returns>
         public CommandService<TContext> BuildCommandService()
-            => new CommandService<TContext>(_pipelines, _modules, _typeReaderFactory());
+        {
+            if (!_addedParser)
+                throw new InvalidOperationException("A command parser is needed");
+            if (!_addedReaders)
+                throw new InvalidOperationException("A type reader factory is needed");
+
+            return new CommandService<TContext>(_pipelines, _modules, _typeReaderFactory());
+        }
     }
 }

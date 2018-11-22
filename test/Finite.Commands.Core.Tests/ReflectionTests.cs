@@ -25,6 +25,7 @@ namespace Finite.Commands.Core.Tests
             CommandService<TestContext> cs = new CommandServiceBuilder<TestContext>()
                  .AddModules(Assembly.GetExecutingAssembly())
                  .AddCommandParser<DefaultCommandParser<TestContext>>()
+                 .AddTypeReaderFactory<NullTypeReaderFactory>()
                  .BuildCommandService();
 
             Assert.Equal(1, cs.Modules.Count);
