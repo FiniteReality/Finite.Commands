@@ -9,13 +9,18 @@ namespace Finite.Commands
     /// command contextual data.
     /// </typeparam>
     public abstract class ModuleBase<TContext>
-        where TContext : ICommandContext
+        where TContext : class, ICommandContext
     {
         /// <summary>
         /// The contextual data passed to the command, such as message author
         /// and message content.
         /// </summary>
         public TContext Context { get; private set; }
+
+        /// <summary>
+        /// The command service owning this module.
+        /// </summary>
+        public CommandService<TContext> Commands { get; private set; }
 
         /// <summary>
         /// A callback executed when the module is about to execute a command.
@@ -29,6 +34,11 @@ namespace Finite.Commands
         internal void SetContext(ICommandContext context)
         {
             Context = (TContext)context;
+        }
+
+        internal void SetCommands(ICommandService commands)
+        {
+            Commands = (CommandService<TContext>)commands;
         }
 
         internal void CallOnExecuting(CommandInfo command)

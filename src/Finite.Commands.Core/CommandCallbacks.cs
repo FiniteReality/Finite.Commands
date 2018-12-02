@@ -8,9 +8,14 @@ namespace Finite.Commands
     /// <see cref="CommandService{TContext}"/>.
     /// </summary>
     /// <param name="command">
-    /// The command which has been executed.</param>
+    /// The command which has been executed.
+    /// </param>
     /// <param name="context">
-    /// The context for the executed command.</param>
+    /// The context for the executed command.
+    /// </param>
+    /// <param name="commands">
+    /// The command service this command is being executed under.
+    /// </param>
     /// <param name="services">
     /// The service container for requesting required services.
     /// </param>
@@ -21,8 +26,8 @@ namespace Finite.Commands
     /// An object indicating the command's success.
     /// </returns>
     public delegate Task<IResult> CommandCallback(CommandInfo command,
-        ICommandContext context, IServiceProvider services,
-        object[] arguments);
+        ICommandContext context, ICommandService commands,
+        IServiceProvider services, object[] arguments);
 
     /// <summary>
     /// A callback invoked when a module is being built.

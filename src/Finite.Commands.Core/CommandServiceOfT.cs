@@ -12,7 +12,7 @@ namespace Finite.Commands
     /// The command context to use.
     /// </typeparam>
     public sealed class CommandService<TContext> : ICommandService
-        where TContext : class, ICommandContext<TContext>
+        where TContext : class, ICommandContext
     {
         private readonly IReadOnlyList<ModuleInfo> _modules;
         private readonly IReadOnlyList<PipelineCallback> _pipelines;

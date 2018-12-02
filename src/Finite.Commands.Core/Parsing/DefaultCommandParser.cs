@@ -11,7 +11,7 @@ namespace Finite.Commands
     /// </summary>
     public partial class DefaultCommandParser<TContext>
         : ICommandParser<TContext>
-        where TContext : class, ICommandContext<TContext>
+        where TContext : class, ICommandContext
     {
         // A list of default parsers for TryParseObject.
         private readonly Dictionary<Type, Func<string, (bool, object)>>

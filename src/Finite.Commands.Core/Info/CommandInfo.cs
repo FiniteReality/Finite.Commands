@@ -61,11 +61,14 @@ namespace Finite.Commands
         /// <summary>
         /// Executes the command.
         /// </summary>
-        /// <param name="services">
-        /// The service container to use for instanciating services
-        /// </param>
         /// <param name="context">
         /// The context to use for this command.
+        /// </param>
+        /// <param name="commands">
+        /// The command service requesting this command execution.
+        /// </param>
+        /// <param name="services">
+        /// The service container to use for instanciating services.
         /// </param>
         /// <param name="args">
         /// Any required arguments to the command's callback.
@@ -74,15 +77,16 @@ namespace Finite.Commands
         /// Any useful information after executing the command.
         /// </returns>
         internal async Task<IResult> ExecuteAsync(
-            ICommandContext context, IServiceProvider services, object[] args)
+            ICommandContext context, ICommandService commands,
+            IServiceProvider services, object[] args)
         {
-            return await _callback(this, context, services, args)
+            return await _callback(this, context, commands, services, args)
                 .ConfigureAwait(false);
         }
 
         internal Task<IResult> ExecuteAsync(
             CommandExecutionContext context)
-            => ExecuteAsync(context.Context, context.ServiceProvider,
-                context.Arguments);
+            => ExecuteAsync(context.Context, context.CommandService,
+                context.ServiceProvider, context.Arguments);
     }
 }

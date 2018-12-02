@@ -32,7 +32,8 @@ namespace Finite.Commands
 
         public static bool IsValidModuleDefinition(TypeInfo type)
         {
-            return ModuleBaseTypeInfo.IsAssignableFrom(type)
+            return !type.IsAbstract
+                && ModuleBaseTypeInfo.IsAssignableFrom(type)
                 && type.DeclaredMethods.Any(IsValidCommandDefinition)
                 && type
                     .GetMethods(BindingFlags.Public | BindingFlags.Static)
@@ -160,11 +161,12 @@ namespace Finite.Commands
                 resultGetter = _compiledResultGetters.GetOrAdd(
                     method.ReturnType, CreateResultGetter);
 
-            return async (command, context, services, arguments) =>
+            return async (command, context, commands, services, arguments) =>
             {
                 var module = factory(services, Array.Empty<object>())
                     as ModuleBase<TContext>;
 
+                module.SetCommands(commands);
                 module.SetContext(context);
 
                 module.CallOnExecuting(command);

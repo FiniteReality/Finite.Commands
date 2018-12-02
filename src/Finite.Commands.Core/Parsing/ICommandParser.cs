@@ -6,7 +6,7 @@ namespace Finite.Commands
     /// Public interface for implementing a command parser
     /// </summary>
     public interface ICommandParser<TContext>
-            where TContext : class, ICommandContext<TContext>
+            where TContext : class, ICommandContext
     {
         /// <summary>
         /// Parses a command message into a token stream

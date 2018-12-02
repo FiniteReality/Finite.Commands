@@ -1,9 +1,7 @@
 namespace Finite.Commands
 {
     /// <summary>
-    /// The base context for all commands. This is not intended to be used
-    /// publicly, instead you should use
-    /// <see cref="ICommandContext{TContext}"/>.
+    /// The base context for all commands.
     /// </summary>
     public interface ICommandContext
     {

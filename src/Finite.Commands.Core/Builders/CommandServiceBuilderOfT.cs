@@ -12,7 +12,7 @@ namespace Finite.Commands
     /// The command context type to use.
     /// </typeparam>
     public sealed class CommandServiceBuilder<TContext>
-        where TContext : class, ICommandContext<TContext>
+        where TContext : class, ICommandContext
     {
         private readonly List<PipelineCallback> _pipelines;
 

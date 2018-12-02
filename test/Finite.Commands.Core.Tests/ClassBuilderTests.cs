@@ -43,7 +43,7 @@ namespace Finite.Commands.Tests
             Assert.Empty(cmd.Attributes);
             Assert.Equal(module, cmd.Module);
 
-            var result = cmd.ExecuteAsync(Context, null, new object[]{})
+            var result = cmd.ExecuteAsync(Context, null, null, new object[]{})
                     .GetAwaiter().GetResult();
 
             Assert.NotNull(result);
@@ -58,7 +58,7 @@ namespace Finite.Commands.Tests
 
             foreach (var cmd in module.Commands)
             {
-                var result = cmd.ExecuteAsync(Context, null, new object[]{})
+                var result = cmd.ExecuteAsync(Context, null, null, new object[]{})
                     .GetAwaiter().GetResult();
 
                 switch (cmd.Aliases.First())
