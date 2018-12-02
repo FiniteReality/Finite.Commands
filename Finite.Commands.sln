@@ -7,6 +7,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Finite.Commands.Core", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Finite.Commands.Core.Tests", "test\Finite.Commands.Core.Tests\Finite.Commands.Core.Tests.csproj", "{D4F4BD80-1120-468E-97F2-2FC9ED562CFA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D5523113-B295-4E55-87DF-3E23AE9864B3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Addons.Finite.Commands", "src\Discord.Addons.Finite.Commands\Discord.Addons.Finite.Commands.csproj", "{DC177B30-8FBB-4D6C-BFB5-E442E85BB232}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,11 +25,18 @@ Global
 		{D4F4BD80-1120-468E-97F2-2FC9ED562CFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D4F4BD80-1120-468E-97F2-2FC9ED562CFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D4F4BD80-1120-468E-97F2-2FC9ED562CFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC177B30-8FBB-4D6C-BFB5-E442E85BB232}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC177B30-8FBB-4D6C-BFB5-E442E85BB232}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC177B30-8FBB-4D6C-BFB5-E442E85BB232}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC177B30-8FBB-4D6C-BFB5-E442E85BB232}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A5634F2C-30AC-4BDA-B0AE-57F77C11C622}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{DC177B30-8FBB-4D6C-BFB5-E442E85BB232} = {D5523113-B295-4E55-87DF-3E23AE9864B3}
 	EndGlobalSection
 EndGlobal

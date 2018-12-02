@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\Finite.Commands.targets" />
+  <PropertyGroup>
+    <RootNamespace>Discord.Addons.Finite.Commands</RootNamespace>
+    <Description>An extension library providing support for Finite.Commands</Description>
+    <PackageTags>discord;commands;finite.commands</PackageTags>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Discord.Net.WebSocket" Version="2.0.0-beta" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Finite.Commands.Core/Finite.Commands.Core.csproj" />
+  </ItemGroup>
+</Project>
