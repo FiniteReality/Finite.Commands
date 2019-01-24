@@ -26,6 +26,17 @@ namespace Finite.Commands
         public Type Type { get; }
 
         /// <summary>
+        /// Indicates whether this parameter is optional or not.
+        /// </summary>
+        public bool Optional { get; }
+
+        /// <summary>
+        /// The default value for this parameter if <see cref="Optional"/> is
+        /// set.
+        /// </summary>
+        public object DefaultValue { get; }
+
+        /// <summary>
         /// The parent command of this parameter.
         /// </summary>
         public CommandInfo Command { get; }
@@ -33,12 +44,14 @@ namespace Finite.Commands
         internal ParameterInfo(CommandInfo command,
             IReadOnlyCollection<string> aliases,
             IReadOnlyCollection<Attribute> attributes,
-            Type type)
+            Type type, bool hasDefault, object defaultValue)
         {
             Attributes = attributes;
             Aliases = aliases;
             Command = command;
             Type = type;
+            Optional = hasDefault;
+            DefaultValue = defaultValue;
         }
     }
 }

@@ -29,14 +29,18 @@ namespace Finite.Commands
 
                 [typeof(long)] = (x) => (long.TryParse(x, out var y), y),
                 [typeof(ulong)] = (x) => (ulong.TryParse(x, out var y), y),
+
                 [typeof(string)] = (x) => (true, x)
             };
 
         /// <summary>
         /// Attempts to deserialize a parameter into a given type
         /// </summary>
-        /// <param name="param">
-        /// The parameter to deserialize <paramref name="value"/> for.
+        /// <param name="readerFactory">
+        /// The type reader factory to request type readers from.
+        /// </param>
+        /// <param name="paramType">
+        /// The parameter type to deserialize <paramref name="value"/> for.
         /// </param>
         /// <param name="value">
         /// A string containing the value of the parameter to deserialize.
@@ -47,15 +51,14 @@ namespace Finite.Commands
         /// <returns>
         /// A boolean indicating whether the parse was successful or not
         /// </returns>
-        protected virtual bool TryParseObject(ICommandService commands,
-            ParameterInfo param, string value, out object result)
+        protected virtual bool TryParseObject(ITypeReaderFactory readerFactory,
+            Type paramType, string value, out object result)
         {
-            var factory = commands.TypeReaderFactory;
-            if (factory.TryGetTypeReader(param.Type, out var reader))
+            if (readerFactory.TryGetTypeReader(paramType, out var reader))
             {
                 return reader.TryRead(value, out result);
             }
-            else if (_defaultParsers.TryGetValue(param.Type, out var parser))
+            else if (_defaultParsers.TryGetValue(paramType, out var parser))
             {
                 var (success, parsed) = parser(value);
                 result = parsed;
@@ -69,6 +72,9 @@ namespace Finite.Commands
         /// <summary>
         /// Attempts to deserialize the arguments for a given comand match.
         /// </summary>
+        /// <param name="readerFactory">
+        /// The type reader factory to request type readers from.
+        /// </param>
         /// <param name="match">
         /// The <see cref="CommandMatch"/> to deserialize arguments for.
         /// </param>
@@ -76,21 +82,21 @@ namespace Finite.Commands
         /// The parsed arguments for this match.
         /// </param>
         /// <returns>
-        /// A tuple containing a <see cref="bool"/> representing success, and
-        /// an array of parameters which will be <code>null</code> if the
-        /// former value is <code>false</code>.
+        /// A <see cref="bool"/> representing success
         /// </returns>
-        protected virtual bool GetArgumentsForMatch(ICommandService commands,
-            CommandMatch match, out object[] result)
+        protected virtual bool GetArgumentsForMatch(
+            ITypeReaderFactory readerFactory, CommandMatch match,
+            out object[] result)
         {
             bool TryParseMultiple(ParameterInfo argument, int startPos,
                 out object[] parsed)
             {
+                var paramType = argument.Type.GetElementType();
                 parsed = new object[match.Arguments.Length - startPos];
                 for (int i = startPos; i < match.Arguments.Length; i++)
                 {
-                    var ok = TryParseObject(commands, argument, match.Arguments[i],
-                        out var value);
+                    var ok = TryParseObject(readerFactory,
+                        paramType, match.Arguments[i], out var value);
 
                     if (!ok)
                         return false;
@@ -112,13 +118,20 @@ namespace Finite.Commands
                 {
                     if (!TryParseMultiple(argument, i, out var multiple))
                         return false;
-    
+
                     result[i] = multiple;
+                }
+                else if (i >= match.Arguments.Length)
+                {
+                    if (!argument.Optional)
+                        return false;
+
+                    result[i] = argument.DefaultValue;
                 }
                 else
                 {
-                    var ok = TryParseObject(commands, argument,
-                        match.Arguments[i], out var value);
+                    var ok = TryParseObject(readerFactory,
+                        argument.Type, match.Arguments[i], out var value);
 
                     if (!ok)
                         return false;
@@ -144,7 +157,8 @@ namespace Finite.Commands
 
             foreach (var match in commands.FindCommands(tokenStream))
             {
-                if (GetArgumentsForMatch(executionContext.CommandService,
+                if (GetArgumentsForMatch(
+                    executionContext.CommandService.TypeReaderFactory,
                     match, out object[] arguments))
                 {
                     // TODO: maybe I should migrate this to a parser result?

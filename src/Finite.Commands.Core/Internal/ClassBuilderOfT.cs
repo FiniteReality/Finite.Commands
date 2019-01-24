@@ -133,6 +133,9 @@ namespace Finite.Commands
 
             builder.WithType(parameter.ParameterType);
 
+            if (parameter.IsOptional || parameter.HasDefaultValue)
+                builder.WithDefaultValue(parameter.DefaultValue);
+
             foreach (var attribute in attributes)
             {
                 switch (attribute)

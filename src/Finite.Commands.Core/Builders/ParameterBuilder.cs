@@ -26,9 +26,19 @@ namespace Finite.Commands
             => _attributes.AsReadOnly();
 
         /// <summary>
-        /// The type of this parameter.
+        /// The type of the parameter.
         /// </summary>
         public Type Type { get; private set; }
+
+        /// <summary>
+        /// Indicates whether the parameter is optional or not.
+        /// </summary>
+        public bool Optional { get; private set; }
+
+        /// <summary>
+        /// Specifies the default value when <see cref="Optional"/> is set.
+        /// </summary>
+        public object DefaultValue { get; private set; }
 
         /// <summary>
         /// Creates a new <see cref="ParameterBuilder"/> with the given name.
@@ -89,9 +99,26 @@ namespace Finite.Commands
             return this;
         }
 
+        /// <summary>
+        /// Sets the default value of the created <see cref="ParameterInfo"/>.
+        /// </summary>
+        /// <param name="value">
+        /// The default value of the parameter.
+        /// </param>
+        /// <returns>
+        /// The current instance, for chaining calls.
+        /// </returns>
+        public ParameterBuilder WithDefaultValue(object value)
+        {
+            Optional = true;
+            DefaultValue = value;
+            return this;
+        }
+
         internal ParameterInfo Build(CommandInfo command)
         {
-            return new ParameterInfo(command, Aliases, Attributes, Type);
+            return new ParameterInfo(command, Aliases, Attributes, Type,
+                Optional, DefaultValue);
         }
     }
 }
