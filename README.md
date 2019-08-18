@@ -13,7 +13,7 @@ Feel free to join my Discord server: https://discord.gg/Y4d9ZWJ
     - Simple discord bot example
 
 
-[ci-pipeline-link]: https://gitlab.com/FiniteReality/Finite.Commands/commits/master
+[ci-pipeline-link]: https://gitlab.com/FiniteReality/Finite.Commands/pipelines
 [ci-pipeline-image]: https://gitlab.com/FiniteReality/Finite.Commands/badges/master/pipeline.svg
 [myget-link]: https://www.myget.org/feed/finitereality/package/nuget/Finite.Commands.Core
 [myget-image]: https://img.shields.io/myget/finitereality/vpre/Finite.Commands.Core.svg?label=myget
