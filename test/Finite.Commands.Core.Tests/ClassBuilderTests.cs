@@ -87,6 +87,7 @@ namespace Finite.Commands.Tests
 
         private class ModuleBuildTestModule : ModuleBase<TestContext>
         {
+#pragma warning disable CA1822 // Explicitly testing instance methods here
             [Command("Task")]
             public Task TestCommandReturningTask()
                 => Task.CompletedTask;
@@ -104,6 +105,28 @@ namespace Finite.Commands.Tests
             [Command("Task<TestResultSuccessful>")]
             public Task<TestResultSuccessful>
                 TestCommandReturningTaskTestResultSuccessful()
+                => Task.FromResult<TestResultSuccessful>(
+                    new TestResultSuccessful());
+#pragma warning restore CA1822
+
+            [Command("Task")]
+            public static Task TestStaticCommandReturningTask()
+                => Task.CompletedTask;
+
+            [Command("Task<ICommandResult>")]
+            public static Task<IResult>
+                TestStaticCommandReturningTaskICommandResult()
+                => Task.FromResult<IResult>(null);
+
+            [Command("Task<TestResultUnsuccessful>")]
+            public static Task<TestResultUnsuccessful>
+                TestStaticCommandReturningTaskTestResultUnsuccessful()
+                => Task.FromResult<TestResultUnsuccessful>(
+                    new TestResultUnsuccessful());
+
+            [Command("Task<TestResultSuccessful>")]
+            public static Task<TestResultSuccessful>
+                TestStaticCommandReturningTaskTestResultSuccessful()
                 => Task.FromResult<TestResultSuccessful>(
                     new TestResultSuccessful());
         }

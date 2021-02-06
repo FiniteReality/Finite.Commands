@@ -218,28 +218,56 @@ namespace Finite.Commands
         private static Func<ModuleBase<TContext>, object[], object>
             CreateMethodInvoker(MethodInfo method)
         {
-            // Creates a lambda function which looks similar to this:
-            // (target, @params) => (object)((TModule)target.<Method>(
-            //     (T1)@params[0], (T2)@params[1], ..., (TN)@params[N]))
+            if (method.IsStatic)
+            {
+                // Creates a lambda function which looks similar to this:
+                // (_, @params) => (object)(TModule.<Method>(
+                //     (T1)@params[0], (T2)@params[1], ..., (TN)@params[N]))
 
-            var target = Expression.Parameter(typeof(ModuleBase<TContext>),
-                "target");
-            var parameters = Expression.Parameter(typeof(object[]), "params");
+                var parameters = Expression.Parameter(typeof(object[]), "params");
 
-            var parameterCasts = method.GetParameters()
-                .Select((p, i) => Expression.Convert(
-                    Expression.ArrayIndex(parameters, Expression.Constant(i)),
-                    p.ParameterType));
+                var parameterCasts = method.GetParameters()
+                    .Select((p, i) => Expression.Convert(
+                        Expression.ArrayIndex(parameters, Expression.Constant(i)),
+                        p.ParameterType));
 
-            return Expression
-                .Lambda<Func<ModuleBase<TContext>, object[], object>>(
-                    Expression.Convert(
-                        Expression.Call(
-                            Expression.Convert(target, method.DeclaringType),
-                            method, parameterCasts),
-                        typeof(object)),
-                    target, parameters)
-                .Compile();
+                return Expression
+                    .Lambda<Func<ModuleBase<TContext>, object[], object>>(
+                        Expression.Convert(
+                            Expression.Call(
+                                method, parameterCasts),
+                            typeof(object)),
+                        Expression.Parameter(
+                            typeof(ModuleBase<TContext>),
+                            "_"),
+                        parameters)
+                    .Compile();
+            }
+            else
+            {
+                // Creates a lambda function which looks similar to this:
+                // (target, @params) => (object)((TModule)target.<Method>(
+                //     (T1)@params[0], (T2)@params[1], ..., (TN)@params[N]))
+
+                var target = Expression.Parameter(typeof(ModuleBase<TContext>),
+                    "target");
+                var parameters = Expression.Parameter(typeof(object[]), "params");
+
+                var parameterCasts = method.GetParameters()
+                    .Select((p, i) => Expression.Convert(
+                        Expression.ArrayIndex(parameters, Expression.Constant(i)),
+                        p.ParameterType));
+
+                return Expression
+                    .Lambda<Func<ModuleBase<TContext>, object[], object>>(
+                        Expression.Convert(
+                            Expression.Call(
+                                Expression.Convert(target, method.DeclaringType),
+                                method, parameterCasts),
+                            typeof(object)),
+                        target, parameters)
+                    .Compile();
+            }
         }
 
         private static OnBuildingCallback

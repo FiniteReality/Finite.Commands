@@ -23,7 +23,7 @@ namespace Finite.Commands.Tests
     public class ValidTestModule : ModuleBase<TestContext>
     {
         [Command("derp")]
-        public Task DoCoolThings()
+        public static Task DoCoolStaticThings()
             => Task.CompletedTask;
 
         protected override void OnExecuting(CommandInfo command)
@@ -44,7 +44,7 @@ namespace Finite.Commands.Tests
         : ModuleBase<TestContext>
     {
         [Command("derp")]
-        public int BadReturnType()
+        public static int BadReturnType()
             => 1;
     }
 
