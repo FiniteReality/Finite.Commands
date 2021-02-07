@@ -30,7 +30,6 @@ jobs:
         run: dotnet pack --no-build --configuration Release
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v1.0.0
+        uses: actions/upload-artifact@v2
         with:
-          name: nupkgs
-          path: ${{ github.workspace }}/artifacts/pkg/Release
+          path: ${{ github.workspace }}/artifacts/pkg/Release/*.nupkg
