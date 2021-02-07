@@ -1,9 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Finite.Commands.Abstractions;
 
-namespace Finite.Commands.Core
+namespace Finite.Commands
 {
     internal sealed class CommandResultExecutorWrapper<TResult>
         : ICommandResultExecutor

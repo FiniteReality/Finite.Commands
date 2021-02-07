@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Finite.Commands.Abstractions
+namespace Finite.Commands
 {
     /// <summary>
     /// A function that can process a command.

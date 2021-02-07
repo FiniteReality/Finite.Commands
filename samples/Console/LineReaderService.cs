@@ -1,8 +1,8 @@
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Finite.Commands.Abstractions;
+using Finite.Commands;
+using Finite.Commands.Parsing;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -10,15 +10,18 @@ namespace ConsoleCommands
 {
     public class LineReaderService : BackgroundService
     {
+        private readonly ICommandContextFactory _commandContextFactory;
         private readonly ICommandExecutor _commandExecutor;
         private readonly ICommandParser _commandParser;
         private readonly ILogger _logger;
 
         public LineReaderService(
+            ICommandContextFactory commandContextFactory,
             ICommandParser commandParser,
             ICommandExecutor commandExecutor,
             ILogger<LineReaderService> logger)
         {
+            _commandContextFactory = commandContextFactory;
             _commandExecutor = commandExecutor;
             _commandParser = commandParser;
             _logger = logger;
@@ -45,7 +48,9 @@ namespace ConsoleCommands
 
                 if (command != null)
                 {
-                    var context = await _commandParser.ParseAsync(command,
+                    var context = _commandContextFactory.CreateContext();
+
+                    await _commandParser.ParseAsync(context, command,
                         stoppingToken);
                     await _commandExecutor.ExecuteAsync(context,
                         stoppingToken);

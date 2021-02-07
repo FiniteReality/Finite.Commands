@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Finite.Commands.Abstractions
+namespace Finite.Commands
 {
     /// <summary>
     /// Defines an interface which can be used to execute a command pipeline.

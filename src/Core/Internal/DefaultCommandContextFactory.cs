@@ -1,11 +1,11 @@
-using Finite.Commands.Abstractions;
+using Finite.Commands;
 
-namespace Finite.Commands.Core
+namespace Finite.Commands
 {
     internal sealed class DefaultCommandContextFactory : ICommandContextFactory
     {
         public CommandContext CreateContext()
-            => new();
+            => new DefaultCommandContext();
 
         public void ReleaseContext(CommandContext context)
         {

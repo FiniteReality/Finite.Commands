@@ -1,7 +1,8 @@
 using System;
-using Finite.Commands.Abstractions;
+using Finite.Commands;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace Finite.Commands
 {
     /// <summary>
     /// An interface for configuring commands services.

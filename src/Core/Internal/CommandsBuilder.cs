@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Finite.Commands.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Finite.Commands.Core
+namespace Finite.Commands
 {
     internal class CommandsBuilder : ICommandsBuilder
     {

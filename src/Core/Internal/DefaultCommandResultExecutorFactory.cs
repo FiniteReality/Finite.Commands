@@ -1,9 +1,8 @@
 using System;
 using System.Diagnostics;
-using Finite.Commands.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Finite.Commands.Core
+namespace Finite.Commands
 {
     internal sealed class DefaultCommandResultExecutorFactory
         : ICommandResultExecutorFactory

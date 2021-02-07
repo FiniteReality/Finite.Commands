@@ -1,6 +1,6 @@
 using System;
 
-namespace Finite.Commands.Abstractions
+namespace Finite.Commands
 {
     /// <summary>
     /// Defines a factory for instances of

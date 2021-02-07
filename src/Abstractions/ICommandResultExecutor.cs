@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Finite.Commands.Abstractions
+namespace Finite.Commands
 {
     /// <summary>
     /// Defines an interface for a service which can execute a particular kind

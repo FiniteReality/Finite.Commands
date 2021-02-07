@@ -1,6 +1,5 @@
 ﻿using System;
-using Finite.Commands.Core;
-using Finite.Commands.Abstractions;
+using Finite.Commands;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -29,8 +28,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(services));
 
             services.TryAddScoped<ICommandResultExecutorFactory, DefaultCommandResultExecutorFactory>();
-
-            services.TryAddSingleton<ICommandParser, DefaultCommandParser>();
             services.TryAddSingleton<ICommandContextFactory, DefaultCommandContextFactory>();
 
             services.TryAddSingleton<CommandHostedService>();

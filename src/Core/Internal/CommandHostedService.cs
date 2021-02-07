@@ -2,19 +2,25 @@ using System;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Finite.Commands.Abstractions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Finite.Commands.Core
+namespace Finite.Commands
 {
     internal class CommandHostedService : BackgroundService, ICommandExecutor
     {
-        private static readonly Action<ILogger, string, Exception?> CommandExecuting
-            = LoggerMessage.Define<string>(
+        private static readonly Action<ILogger, CommandPath, Exception?> CommandExecuting
+            = LoggerMessage.Define<CommandPath>(
                 LogLevel.Information,
-                new EventId(1, nameof(CommandExecuting)),
+                new EventId(0, nameof(CommandExecuting)),
                 "Executing command {comand}");
+
+        private static readonly Action<ILogger, CommandPath, Exception?> CommandExecuted
+            = LoggerMessage.Define<CommandPath>(
+                LogLevel.Information,
+                new EventId(1, nameof(CommandExecuted)),
+                "Executed command {comand}");
+
 
         private readonly ICommandContextFactory _contextFactory;
         private readonly ILogger _logger;
@@ -47,7 +53,9 @@ namespace Finite.Commands.Core
             var reader = _executionRequests.Reader;
             await foreach (var context in reader.ReadAllAsync(stoppingToken))
             {
-                CommandExecuting(_logger, "text", null);
+                CommandExecuting(_logger, context.Path, null);
+                // TODO: execute command
+                CommandExecuted(_logger, context.Path, null);
                 _contextFactory.ReleaseContext(context);
             }
         }

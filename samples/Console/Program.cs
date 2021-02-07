@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Memory;
+using Finite.Commands.Parsing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -22,7 +20,8 @@ namespace ConsoleCommands
             // (PR was not merged for .NET 5.0)
             _ = services.Configure<HostOptions>(x => x.ShutdownTimeout = TimeSpan.Zero);
 
-            services.AddCommands();
+            _ = services.AddCommands()
+                .AddDefaultCommandParser();
 
             _ = services.AddHostedService<LineReaderService>();
         }

@@ -1,4 +1,4 @@
-namespace Finite.Commands.Abstractions
+namespace Finite.Commands
 {
     /// <summary>
     /// Defines an interface which can be used to create instances of

@@ -1,11 +1,15 @@
 using System;
 
-namespace Finite.Commands.Abstractions
+namespace Finite.Commands
 {
     /// <summary>
     /// Context object for execution of commands or middleware.
     /// </summary>
-    public sealed class CommandContext
+    public abstract class CommandContext
     {
+        /// <summary>
+        /// Gets or sets the command path.
+        /// </summary>
+        public abstract CommandPath Path { get; set; }
     }
 }

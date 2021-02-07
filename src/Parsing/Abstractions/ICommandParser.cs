@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Finite.Commands.Abstractions
+namespace Finite.Commands.Parsing
 {
     /// <summary>
     /// Defines an interface which can be used to populate command contexts
@@ -10,8 +10,12 @@ namespace Finite.Commands.Abstractions
     public interface ICommandParser
     {
         /// <summary>
-        /// Parses the given message into a command context.
+        /// Parses <paramref name="message"/> and populates
+        /// <paramref name="context"/> with the result.
         /// </summary>
+        /// <param name="context">
+        /// The context to populate.
+        /// </param>
         /// <param name="message">
         /// The raw text for the message.
         /// </param>
@@ -21,7 +25,7 @@ namespace Finite.Commands.Abstractions
         /// <returns>
         /// A ValueTask which represents the completion of the parsing.
         /// </returns>
-        ValueTask<CommandContext> ParseAsync(string message,
+        ValueTask ParseAsync(CommandContext context, string message,
             CancellationToken cancellationToken = default);
     }
 }
