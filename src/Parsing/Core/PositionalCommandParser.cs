@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Finite.Commands.Parsing
 {
-    internal sealed class DefaultCommandParser : ICommandParser
+    internal sealed class PositionalCommandParser : ICommandParser
     {
         private readonly ICommandStore _commandStoreRoot;
 
-        public DefaultCommandParser(ICommandStore commandStore)
+        public PositionalCommandParser(ICommandStore commandStore)
         {
             _commandStoreRoot = commandStore;
         }
@@ -55,6 +55,9 @@ namespace Finite.Commands.Parsing
                 {
                     // The current token represents a parameter to a command
                     // e.g. "param1" in "group name param1"
+                    Debug.Assert(commands != null);
+
+                    // TODO: identify correct payload
                 }
             }
 

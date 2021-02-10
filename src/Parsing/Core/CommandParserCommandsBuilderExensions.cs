@@ -20,10 +20,10 @@ namespace Finite.Commands.Parsing
         /// <returns>
         /// The <paramref name="builder"/>.
         /// </returns>
-        public static ICommandsBuilder AddDefaultCommandParser(
+        public static ICommandsBuilder AddPositionalCommandParser(
             this ICommandsBuilder builder)
         {
-            builder.Services.TryAddSingleton<ICommandParser, DefaultCommandParser>();
+            builder.Services.TryAddSingleton<ICommandParser, PositionalCommandParser>();
 
             return builder;
         }

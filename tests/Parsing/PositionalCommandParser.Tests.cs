@@ -6,19 +6,19 @@ using NUnit.Framework;
 namespace Finite.Commands.Parsing.UnitTests
 {
     /// <summary>
-    /// Unit tests for <see cref="DefaultCommandParser"/>.
+    /// Unit tests for <see cref="PositionalCommandParser"/>.
     /// </summary>
-    public class DefaultCommandParserTests
+    public class PositionalCommandParserTests
     {
         /// <summary>
-        /// Ensures that <see cref="DefaultCommandParser.Lex(string)"/>
+        /// Ensures that <see cref="PositionalCommandParser.Lex(string)"/>
         /// produces the correct results.
         /// </summary>
         [Test]
         [TestCaseSource(nameof(GetLexInputs))]
         public void LexReturnsCorrectlyTokenisedItems(LexInput input)
         {
-            var result = DefaultCommandParser.Lex(input.Message);
+            var result = PositionalCommandParser.Lex(input.Message);
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Is.Not.Empty);
@@ -42,13 +42,13 @@ namespace Finite.Commands.Parsing.UnitTests
         }
 
         /// <summary>
-        /// An input for <see cref="DefaultCommandParser.Lex(string)"/>
+        /// An input for <see cref="PositionalCommandParser.Lex(string)"/>
         /// </summary>
         public struct LexInput
         {
             /// <summary>
             /// The raw message to pass to
-            /// <see cref="DefaultCommandParser.Lex(string)"/>
+            /// <see cref="PositionalCommandParser.Lex(string)"/>
             /// </summary>
             public string Message;
 
