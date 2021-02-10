@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,23 +9,52 @@ namespace Finite.Commands.Parsing
 {
     internal sealed class DefaultCommandParser : ICommandParser
     {
-        private readonly ICommandStore _commandStore;
+        private readonly ICommandStore _commandStoreRoot;
 
         public DefaultCommandParser(ICommandStore commandStore)
         {
-            _commandStore = commandStore;
+            _commandStoreRoot = commandStore;
         }
 
         public ValueTask ParseAsync(CommandContext context, string message,
             CancellationToken cancellationToken = default)
         {
-            var store = _commandStore;
+            if (message is null)
+                throw new ArgumentNullException(nameof(message));
+
+            if (message == string.Empty)
+                throw new ArgumentException(null, nameof(message));
+
+            var store = _commandStoreRoot;
+            IEnumerable<ICommand>? commands = null;
+            Index? start = null;
 
             foreach (var token in Lex(message))
             {
-                if (store.HasNestedCommands)
+                if (start == null)
+                    start = token.Portion.Start;
+
+                if (store.HasNestedCommandGroups)
                 {
-                    store = store.GetNestedCommands(token);
+                    // The current token represents the name of a group
+                    // e.g. "group" in "group name param1"
+                    store = store.GetCommandGroup(token);
+                }
+                else if (!context.Path.HasValue)
+                {
+                    // The current token represents the name of a command
+                    // e.g. "name" in "group name param1"
+                    Debug.Assert(start != null);
+
+                    context.Path = new CommandPath(message,
+                        start.Value..token.Portion.End);
+
+                    commands = store.GetCommands(token);
+                }
+                else
+                {
+                    // The current token represents a parameter to a command
+                    // e.g. "param1" in "group name param1"
                 }
             }
 

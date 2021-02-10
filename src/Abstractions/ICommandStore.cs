@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Finite.Commands
 {
     /// <summary>
@@ -6,20 +8,33 @@ namespace Finite.Commands
     public interface ICommandStore
     {
         /// <summary>
-        /// Gets all the commands with the given <paramref name="prefix"/>.
+        /// Gets the command group with the given <paramref name="prefix"/>.
         /// </summary>
         /// <param name="prefix">
-        /// The <see cref="CommandPath"/> to search for commands.
+        /// The <see cref="CommandPath"/> to search for command groups.
         /// </param>
         /// <returns>
         /// A <see cref="ICommandStore"/> which can be used to search for
         /// nested commands.
         /// </returns>
-        ICommandStore GetNestedCommands(CommandPath prefix);
+        ICommandStoreSection GetCommandGroup(CommandPath prefix);
 
         /// <summary>
-        /// Gets a value indicating whether this store has nested values.
+        /// Gets a value indicating whether this store has nested command
+        /// groups.
         /// </summary>
-        bool HasNestedCommands { get; }
+        bool HasNestedCommandGroups { get; }
+
+        /// <summary>
+        /// Gets all of the commands with the given <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">
+        /// The <see cref="CommandPath"/> to search for commands.
+        /// </param>
+        /// <returns>
+        /// A <see cref="IEnumerable{T}"/> containing all possible overloads of
+        /// commands with the given <paramref name="name"/>.
+        /// </returns>
+        IEnumerable<ICommand> GetCommands(CommandPath name);
     }
 }
