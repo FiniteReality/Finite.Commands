@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+
+    <Include>[Finite.Commands.Parsing]*</Include>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Parsing/Core/Finite.Commands.Parsing.Core.csproj" />
+    <ProjectReference Include="../../src/Abstractions/Finite.Commands.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

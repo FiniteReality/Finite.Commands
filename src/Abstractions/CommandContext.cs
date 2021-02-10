@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Finite.Commands
 {
@@ -11,5 +12,17 @@ namespace Finite.Commands
         /// Gets or sets the command path.
         /// </summary>
         public abstract CommandPath Path { get; set; }
+
+        /// <summary>
+        /// Gets or sets a key/value collection that can be used to share data
+        /// within the scope of this command.
+        /// </summary>
+        public abstract IDictionary<object, object?> Items { get; set; }
+
+        /// <summary>
+        /// Gets or sets a key/value collection that can be used to store
+        /// parameters within the scope of this command.
+        /// </summary>
+        public abstract IDictionary<string, object?> Parameters { get; set; }
     }
 }

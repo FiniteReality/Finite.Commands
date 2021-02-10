@@ -70,7 +70,6 @@
     <RestoreSources>
       https://api.nuget.org/v3/index.json;
       https://pkgs.terrafx.dev/index.json;
-      https://www.myget.org/F/Finite.Commands/api/v3/index.json;
     </RestoreSources>
     <UseSharedCompilation>true</UseSharedCompilation>
   </PropertyGroup>
