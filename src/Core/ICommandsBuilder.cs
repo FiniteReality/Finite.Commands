@@ -1,5 +1,4 @@
 using System;
-using Finite.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Finite.Commands
