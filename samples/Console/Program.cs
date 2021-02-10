@@ -21,7 +21,7 @@ namespace ConsoleCommands
             _ = services.Configure<HostOptions>(x => x.ShutdownTimeout = TimeSpan.Zero);
 
             _ = services.AddCommands()
-                .AddDefaultCommandParser();
+                .AddPositionalCommandParser();
 
             _ = services.AddHostedService<LineReaderService>();
         }
