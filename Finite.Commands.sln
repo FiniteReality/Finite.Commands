@@ -17,11 +17,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Parsing", "Parsing", "{A447
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finite.Commands.Parsing.Abstractions", "src\Parsing\Abstractions\Finite.Commands.Parsing.Abstractions.csproj", "{AB8811CC-2372-4651-A52B-09C6A05FA308}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finite.Commands.Parsing.Core", "src\Parsing\Core\Finite.Commands.Parsing.Core.csproj", "{211E6850-4599-4011-B42E-FB52EDF9AE21}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finite.Commands.Parsing.Positional", "src\Parsing\Positional\Finite.Commands.Parsing.Positional.csproj", "{211E6850-4599-4011-B42E-FB52EDF9AE21}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{AAFFD74B-59CE-498C-A0E0-284AD0694514}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finite.Commands.Parsing.Core.UnitTests", "tests\Parsing\Finite.Commands.Parsing.Core.UnitTests.csproj", "{68937EE7-9430-4FEA-B2C5-A55F9A7F8761}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finite.Commands.Parsing.Positional.UnitTests", "tests\Parsing\Positional\Finite.Commands.Parsing.Positional.UnitTests.csproj", "{68937EE7-9430-4FEA-B2C5-A55F9A7F8761}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

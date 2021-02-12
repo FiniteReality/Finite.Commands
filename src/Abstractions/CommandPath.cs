@@ -8,6 +8,8 @@ namespace Finite.Commands
     /// </summary>
     public readonly struct CommandPath : IEquatable<CommandPath>
     {
+        private const string Delimiter = " ";
+
         /// <summary>
         /// Represents the empty path. This field is read only.
         /// </summary>
@@ -22,7 +24,7 @@ namespace Finite.Commands
         /// </param>
         public CommandPath(string? value)
         {
-            Value = value ?? string.Empty;
+            RawValue = value ?? string.Empty;
 
             Portion = Range.All;
         }
@@ -48,36 +50,113 @@ namespace Finite.Commands
             // N.B. this validates whether portion is valid based on the string.
             _ = portion.GetOffsetAndLength(value.Length);
 
-            Value = value;
+            RawValue = value;
             Portion = portion;
         }
 
         /// <summary>
         /// Gets the unescaped path value.
         /// </summary>
-        public string Value { get; }
+        public string RawValue { get; }
 
         /// <summary>
-        /// Gets the range representing the portion of <see cref="Value"/>
+        /// Gets the range representing the portion of <see cref="RawValue"/>
         /// which is significant.
         /// </summary>
         public Range Portion { get; }
 
         /// <summary>
-        /// Gets the slice of <see cref="Value"/> which is significant.
+        /// Gets the slice of <see cref="RawValue"/> which is significant.
         /// </summary>
-        public ReadOnlySpan<char> ValueSpan
-            => Value.AsSpan()[Portion];
+        public ReadOnlySpan<char> Value
+            => RawValue.AsSpan()[Portion];
 
         /// <summary>
-        /// Gets a value indicating whether this path empty or not.
+        /// Gets whether <see cref="Value"/> has a meaningful value.
         /// </summary>
-        [MemberNotNullWhen(true, nameof(Value))]
-        public bool HasValue => !ValueSpan.IsEmpty;
+        public bool HasValue
+            => !Value.IsEmpty;
+
+        /// <summary>
+        /// Combines two <see cref="CommandPath"/> values into one.
+        /// </summary>
+        /// <param name="left">
+        /// The first value to combine.
+        /// </param>
+        /// <param name="right">
+        /// The second value to combine.
+        /// </param>
+        /// <returns>
+        /// The combined <see cref="CommandPath"/>.
+        /// </returns>
+        public static CommandPath Combine(CommandPath left, CommandPath right)
+        {
+            var path = string.Create(
+                left.Value.Length +
+                right.Value.Length +
+                Delimiter.Length,
+                (left, right),
+                CreatePath);
+
+            return new CommandPath(path);
+
+            static void CreatePath(Span<char> span,
+                (CommandPath, CommandPath) state)
+            {
+                var (left, right) = state;
+
+                left.Value.CopyTo(span);
+                Delimiter.AsSpan().CopyTo(span[left.Value.Length..]);
+                right.Value.CopyTo(
+                    span[(left.Value.Length + Delimiter.Length)..]);
+            }
+        }
+
+        /// <summary>
+        /// Extracts the command path corresponding to the parent node for this
+        /// path.
+        /// </summary>
+        /// <returns>
+        /// The original command path, without the last segment found in it.
+        /// <see cref="Empty"/> if this command path refers to a top-level
+        /// command path.
+        /// </returns>
+        public CommandPath GetParentPath()
+        {
+            if (Value.IsEmpty)
+                return Empty;
+
+            var index = Value.LastIndexOf(Delimiter,
+                StringComparison.OrdinalIgnoreCase);
+
+            if (index < 0)
+                return Empty;
+
+            var (start, _) = Portion.GetOffsetAndLength(
+                RawValue.Length);
+
+            var portion = start .. (start + index);
+            return new CommandPath(RawValue, portion);
+        }
+
+        /// <summary>
+        /// Determines whether the beginning of this <see cref="CommandPath"/>
+        /// matches the specified <see cref="CommandPath"/>.
+        /// </summary>
+        /// <param name="parent">
+        /// The <see cref="CommandPath"/> to compare.
+        /// </param>
+        /// <returns>
+        /// <code>true</code> if the value matches the beginning of this path;
+        /// otherwise, <code>false</code>.
+        /// </returns>
+        public bool StartsWith(CommandPath parent)
+            => Value.StartsWith(parent.Value,
+                StringComparison.OrdinalIgnoreCase);
 
         /// <inheritdoc/>
         public override string ToString()
-            => HasValue ? new string(ValueSpan) : string.Empty;
+            => HasValue ? new string(Value) : string.Empty;
 
         /// <inheritdoc/>
         public bool Equals(CommandPath other)
@@ -86,7 +165,7 @@ namespace Finite.Commands
         /// <inheritdoc/>
         public bool Equals(CommandPath other, StringComparison comparisonType)
             => !(HasValue || other.HasValue)
-                || MemoryExtensions.Equals(ValueSpan, other.ValueSpan,
+                || MemoryExtensions.Equals(Value, other.Value,
                     comparisonType);
 
         /// <inheritdoc/>
@@ -101,7 +180,7 @@ namespace Finite.Commands
         /// <inheritdoc/>
         public override int GetHashCode()
             => HasValue
-                ? string.GetHashCode(ValueSpan,
+                ? string.GetHashCode(Value,
                     StringComparison.OrdinalIgnoreCase)
                 : 0;
 

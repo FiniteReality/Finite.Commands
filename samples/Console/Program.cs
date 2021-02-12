@@ -1,6 +1,8 @@
 ﻿using System;
+using Finite.Commands;
 using Finite.Commands.Parsing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
 namespace ConsoleCommands
@@ -22,6 +24,11 @@ namespace ConsoleCommands
 
             _ = services.AddCommands()
                 .AddPositionalCommandParser();
+
+            services.TryAddEnumerable(
+                ServiceDescriptor.Singleton<ICommand, HelloWorldCommand>());
+            services.TryAddEnumerable(
+                ServiceDescriptor.Singleton<ICommand, OtherCommand>());
 
             _ = services.AddHostedService<LineReaderService>();
         }

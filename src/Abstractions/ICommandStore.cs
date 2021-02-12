@@ -15,15 +15,9 @@ namespace Finite.Commands
         /// </param>
         /// <returns>
         /// A <see cref="ICommandStore"/> which can be used to search for
-        /// nested commands.
+        /// nested commands, or <code>null</code> if none exists.
         /// </returns>
-        ICommandStoreSection GetCommandGroup(CommandPath prefix);
-
-        /// <summary>
-        /// Gets a value indicating whether this store has nested command
-        /// groups.
-        /// </summary>
-        bool HasNestedCommandGroups { get; }
+        ICommandStoreSection? GetCommandGroup(CommandPath prefix);
 
         /// <summary>
         /// Gets all of the commands with the given <paramref name="name"/>.

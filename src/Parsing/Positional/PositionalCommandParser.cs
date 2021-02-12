@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,6 +12,9 @@ namespace Finite.Commands.Parsing
     internal sealed class PositionalCommandParser : ICommandParser
     {
         private readonly ICommandStore _commandStoreRoot;
+
+        private static readonly char[] StandardGroupChars
+            = new[] { '"', '\'', ' ' };
 
         public PositionalCommandParser(ICommandStore commandStore)
         {
@@ -34,22 +39,40 @@ namespace Finite.Commands.Parsing
                 if (start == null)
                     start = token.Portion.Start;
 
-                if (store.HasNestedCommandGroups)
+                var potentialGroup = store.GetCommandGroup(token);
+                if (potentialGroup != null)
                 {
+                    if (token.Value.IndexOfAny(StandardGroupChars) >= 0 ||
+                        HasUnexpectedQuotedPortion(token.Value))
+                        throw new ArgumentException(
+                            "Command group contains unexpected quoted portion",
+                            nameof(message));
+
                     // The current token represents the name of a group
                     // e.g. "group" in "group name param1"
-                    store = store.GetCommandGroup(token);
+                    store = potentialGroup;
                 }
                 else if (!context.Path.HasValue)
                 {
+                    if (token.Value.IndexOfAny(StandardGroupChars) >= 0 ||
+                        HasUnexpectedQuotedPortion(token.Value))
+                        throw new ArgumentException(
+                            "Command group contains unexpected quoted portion",
+                            nameof(message));
+
                     // The current token represents the name of a command
                     // e.g. "name" in "group name param1"
                     Debug.Assert(start != null);
 
+                    commands = store.GetCommands(token);
+
+                    if (!commands.Any())
+                        throw new ArgumentException(
+                            $"Command store has no command '{token}'",
+                            nameof(message));
+
                     context.Path = new CommandPath(message,
                         start.Value..token.Portion.End);
-
-                    commands = store.GetCommands(token);
                 }
                 else
                 {
@@ -62,6 +85,21 @@ namespace Finite.Commands.Parsing
             }
 
             return default;
+
+            static bool HasUnexpectedQuotedPortion(ReadOnlySpan<char> span)
+            {
+                foreach (var c in span)
+                {
+                    var category = char.GetUnicodeCategory(c);
+
+                    if (category == UnicodeCategory.SpaceSeparator ||
+                        category == UnicodeCategory.InitialQuotePunctuation ||
+                        category == UnicodeCategory.FinalQuotePunctuation)
+                        return true;
+                }
+
+                return false;
+            }
         }
 
         // Internal for unit tests

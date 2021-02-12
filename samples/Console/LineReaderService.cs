@@ -50,8 +50,20 @@ namespace ConsoleCommands
                 {
                     var context = _commandContextFactory.CreateContext();
 
-                    await _commandParser.ParseAsync(context, command,
-                        stoppingToken);
+                    try
+                    {
+                        await _commandParser.ParseAsync(context, command,
+                            stoppingToken);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e,
+                            "Failed to parse {command}",
+                            command);
+
+                        continue;
+                    }
+
                     await _commandExecutor.ExecuteAsync(context,
                         stoppingToken);
                 }

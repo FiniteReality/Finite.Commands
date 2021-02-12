@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Core/Finite.Commands.Core.csproj" />
-    <ProjectReference Include="../../src/Parsing/Core/Finite.Commands.Parsing.Core.csproj" />
+    <ProjectReference Include="../../src/Parsing/Positional/Finite.Commands.Parsing.Positional.csproj" />
   </ItemGroup>
 
   <ItemGroup>

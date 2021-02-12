@@ -29,6 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.TryAddScoped<ICommandResultExecutorFactory, DefaultCommandResultExecutorFactory>();
             services.TryAddSingleton<ICommandContextFactory, DefaultCommandContextFactory>();
+            services.TryAddSingleton<ICommandStore, DefaultCommandStore>();
 
             services.TryAddSingleton<CommandHostedService>();
             _ = services.AddHostedService(
