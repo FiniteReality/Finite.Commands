@@ -18,6 +18,6 @@ namespace Finite.Commands
         /// Gets the parameters which can be used to pass information to this
         /// command.
         /// </summary>
-        IReadOnlyCollection<IParameter> Parameters { get; }
+        IReadOnlyList<IParameter> Parameters { get; }
     }
 }

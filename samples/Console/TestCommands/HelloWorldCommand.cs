@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Finite.Commands;
 
 namespace ConsoleCommands
@@ -7,6 +8,16 @@ namespace ConsoleCommands
     {
         public CommandPath Name { get; } = new CommandPath("hello world");
 
-        public IReadOnlyCollection<IParameter> Parameters => throw new System.NotImplementedException();
+        public IReadOnlyList<IParameter> Parameters { get; }
+            = GetParameters().ToArray();
+
+        private static IEnumerable<IParameter> GetParameters()
+        {
+            yield return new Parameter("message");
+            yield return new Parameter("cool");
+        }
     }
+
+    internal record Parameter(string Name) : IParameter
+    { }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Finite.Commands;
 
@@ -7,6 +8,7 @@ namespace ConsoleCommands
     {
         public CommandPath Name { get; } = new CommandPath("other");
 
-        public IReadOnlyCollection<IParameter> Parameters => throw new System.NotImplementedException();
+        public IReadOnlyList<IParameter> Parameters
+            => Array.Empty<IParameter>();
     }
 }

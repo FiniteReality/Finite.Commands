@@ -33,6 +33,7 @@ namespace Finite.Commands.Parsing
             var store = _commandStoreRoot;
             IEnumerable<ICommand>? commands = null;
             Index? start = null;
+            var parameterCount = 0;
 
             foreach (var token in Lex(message))
             {
@@ -78,11 +79,16 @@ namespace Finite.Commands.Parsing
                 {
                     // The current token represents a parameter to a command
                     // e.g. "param1" in "group name param1"
-                    Debug.Assert(commands != null);
 
-                    // TODO: identify correct payload
+                    context.Parameters[parameterCount.ToString()]
+                        = token.ToString();
+                    parameterCount++;
                 }
             }
+
+            Debug.Assert(commands != null);
+
+            // TODO: write command binder
 
             return default;
 

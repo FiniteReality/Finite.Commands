@@ -64,6 +64,12 @@ namespace ConsoleCommands
                         continue;
                     }
 
+                    foreach (var paramPair in context.Parameters)
+                    {
+                        _logger.LogInformation("Parameter {key} = {value}",
+                            paramPair.Key, paramPair.Value);
+                    }
+
                     await _commandExecutor.ExecuteAsync(context,
                         stoppingToken);
                 }
