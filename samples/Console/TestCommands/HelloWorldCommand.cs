@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Finite.Commands;
@@ -13,11 +14,11 @@ namespace ConsoleCommands
 
         private static IEnumerable<IParameter> GetParameters()
         {
-            yield return new Parameter("message");
-            yield return new Parameter("cool");
+            yield return new Parameter("message", typeof(int));
+            yield return new Parameter("cool", typeof(string));
         }
     }
 
-    internal record Parameter(string Name) : IParameter
+    internal record Parameter(string Name, Type Type) : IParameter
     { }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Finite.Commands
@@ -23,5 +24,10 @@ namespace Finite.Commands
         /// parameters within the scope of this command.
         /// </summary>
         public abstract IDictionary<string, object?> Parameters { get; set; }
+
+        /// <summary>
+        /// Gets the services to use during this command.
+        /// </summary>
+        public abstract IServiceProvider Services { get; }
     }
 }

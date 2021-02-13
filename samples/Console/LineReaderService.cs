@@ -52,8 +52,7 @@ namespace ConsoleCommands
 
                     try
                     {
-                        await _commandParser.ParseAsync(context, command,
-                            stoppingToken);
+                        _commandParser.Parse(context, command);
                     }
                     catch (Exception e)
                     {
@@ -66,8 +65,11 @@ namespace ConsoleCommands
 
                     foreach (var paramPair in context.Parameters)
                     {
-                        _logger.LogInformation("Parameter {key} = {value}",
-                            paramPair.Key, paramPair.Value);
+                        _logger.LogInformation(
+                            "Parameter {key} ({type}) = {value}",
+                            paramPair.Key,
+                            paramPair.Value?.GetType() ?? typeof(object),
+                            paramPair.Value);
                     }
 
                     await _commandExecutor.ExecuteAsync(context,

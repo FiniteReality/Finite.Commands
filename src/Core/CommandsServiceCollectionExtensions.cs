@@ -27,11 +27,15 @@ namespace Microsoft.Extensions.DependencyInjection
             if (services is null)
                 throw new ArgumentNullException(nameof(services));
 
-            services.TryAddScoped<ICommandResultExecutorFactory, DefaultCommandResultExecutorFactory>();
+            services.TryAddSingleton<CommandHostedService>();
             services.TryAddSingleton<ICommandContextFactory, DefaultCommandContextFactory>();
             services.TryAddSingleton<ICommandStore, DefaultCommandStore>();
 
-            services.TryAddSingleton<CommandHostedService>();
+            services.TryAddScoped<ICommandResultExecutorFactory, DefaultCommandResultExecutorFactory>();
+            services.TryAddScoped<IParameterBinderFactory, DefaultParameterBinderFactory>();
+
+            _ = services.AddTransient(typeof(ParameterBinderWrapper<>));
+
             _ = services.AddHostedService(
                 x => x.GetRequiredService<CommandHostedService>());
             services.TryAddSingleton<ICommandExecutor>(

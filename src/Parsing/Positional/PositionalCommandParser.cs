@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+
+using static Finite.Commands.Parsing.ParameterHelper;
 
 namespace Finite.Commands.Parsing
 {
@@ -21,8 +21,7 @@ namespace Finite.Commands.Parsing
             _commandStoreRoot = commandStore;
         }
 
-        public ValueTask ParseAsync(CommandContext context, string message,
-            CancellationToken cancellationToken = default)
+        public void Parse(CommandContext context, string message)
         {
             if (message is null)
                 throw new ArgumentNullException(nameof(message));
@@ -33,7 +32,7 @@ namespace Finite.Commands.Parsing
             var store = _commandStoreRoot;
             IEnumerable<ICommand>? commands = null;
             Index? start = null;
-            var parameterCount = 0;
+            int parameterCount = 0;
 
             foreach (var token in Lex(message))
             {
@@ -80,17 +79,23 @@ namespace Finite.Commands.Parsing
                     // The current token represents a parameter to a command
                     // e.g. "param1" in "group name param1"
 
-                    context.Parameters[parameterCount.ToString()]
-                        = token.ToString();
+                    context.Items[GetParameterName(parameterCount)] = token;
                     parameterCount++;
                 }
             }
 
             Debug.Assert(commands != null);
 
-            // TODO: write command binder
+            // TODO: make this injectable somehow
+            var binder = context.Services.GetRequiredService<ICommandBinder>();
 
-            return default;
+            foreach (var command in commands)
+            {
+                if (binder.TryBind(context, command))
+                    return;
+            }
+
+            throw new Exception("Failed to bind to any commands");
 
             static bool HasUnexpectedQuotedPortion(ReadOnlySpan<char> span)
             {

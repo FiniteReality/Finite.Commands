@@ -1,3 +1,5 @@
+using System;
+
 namespace Finite.Commands
 {
     /// <summary>
@@ -10,5 +12,10 @@ namespace Finite.Commands
         /// Gets the name which uniquely identifies this command parameter.
         /// </summary>
         string Name { get; }
+
+        /// <summary>
+        /// Gets the type of values this parameter accepts.
+        /// </summary>
+        Type Type { get; }
     }
 }
