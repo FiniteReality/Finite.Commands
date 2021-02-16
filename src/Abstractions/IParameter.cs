@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Finite.Commands
 {
@@ -17,5 +18,10 @@ namespace Finite.Commands
         /// Gets the type of values this parameter accepts.
         /// </summary>
         Type Type { get; }
+
+        /// <summary>
+        /// Gets the extra data which has been stored with this parameter.
+        /// </summary>
+        IReadOnlyDictionary<object, object?> Data { get; }
     }
 }

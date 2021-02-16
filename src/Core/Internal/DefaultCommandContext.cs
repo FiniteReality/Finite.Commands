@@ -11,6 +11,7 @@ namespace Finite.Commands
             = new Dictionary<object, object?>();
         public override IDictionary<string, object?> Parameters { get; set; }
             = new Dictionary<string, object?>();
+        public override ICommand Command { get; set; } = null!;
 
         public override IServiceProvider Services
             => ServiceScope.ServiceProvider;

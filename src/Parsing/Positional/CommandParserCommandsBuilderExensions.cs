@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Finite.Commands.Parsing
@@ -22,6 +23,7 @@ namespace Finite.Commands.Parsing
         public static ICommandsBuilder AddPositionalCommandParser(
             this ICommandsBuilder builder)
         {
+            _ = builder.Services.AddSingleton<IParameterBinder<string>, RemainderStringBinder>();
             builder.Services.TryAddSingleton<ICommandParser, PositionalCommandParser>();
             builder.Services.TryAddScoped<ICommandBinder, PositionalCommandBinder>();
 

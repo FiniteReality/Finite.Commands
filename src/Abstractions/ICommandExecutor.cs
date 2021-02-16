@@ -19,7 +19,8 @@ namespace Finite.Commands
         /// A cancellation token which may be used to cancel the command.
         /// </param>
         /// <returns>
-        /// A ValueTask which represents the completion of the command.
+        /// A <see cref="ValueTask"/> which represents the completion of the
+        /// command.
         /// </returns>
         ValueTask ExecuteAsync(CommandContext context,
             CancellationToken cancellationToken = default);

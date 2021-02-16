@@ -11,8 +11,11 @@ namespace Finite.Commands
         /// Attempts to bind the given <paramref name="text"/> into an instance
         /// of <typeparamref name="T"/>.
         /// </summary>
+        /// <param name="parameter">
+        /// The parameter to bind.
+        /// </param>
         /// <param name="text">
-        /// The text to bind.
+        /// The text to bind from.
         /// </param>
         /// <param name="success">
         /// Set to <code>true</code> to indicate successful binding.
@@ -21,6 +24,7 @@ namespace Finite.Commands
         /// An instance of <typeparamref name="T"/> if successful;
         /// <code>default</code> otherwise.
         /// </returns>
-        public T? Bind(ReadOnlySpan<char> text, out bool success);
+        T? Bind(IParameter parameter, ReadOnlySpan<char> text,
+            out bool success);
     }
 }

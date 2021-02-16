@@ -26,6 +26,11 @@ namespace Finite.Commands
         public abstract IDictionary<string, object?> Parameters { get; set; }
 
         /// <summary>
+        /// Gets or sets the command to execute.
+        /// </summary>
+        public abstract ICommand Command { get; set; }
+
+        /// <summary>
         /// Gets the services to use during this command.
         /// </summary>
         public abstract IServiceProvider Services { get; }

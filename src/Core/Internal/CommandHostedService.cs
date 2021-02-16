@@ -13,14 +13,19 @@ namespace Finite.Commands
             = LoggerMessage.Define<CommandPath>(
                 LogLevel.Information,
                 new EventId(0, nameof(CommandExecuting)),
-                "Executing command {comand}");
+                "Executing command {command}");
 
         private static readonly Action<ILogger, CommandPath, Exception?> CommandExecuted
             = LoggerMessage.Define<CommandPath>(
                 LogLevel.Information,
                 new EventId(1, nameof(CommandExecuted)),
-                "Executed command {comand}");
+                "Executed command {command}");
 
+        private static readonly Action<ILogger, CommandPath, Exception?> CommandFailed
+            = LoggerMessage.Define<CommandPath>(
+                LogLevel.Warning,
+                new EventId(2, nameof(CommandFailed)),
+                "Failed to execute {command}");
 
         private readonly ICommandContextFactory _contextFactory;
         private readonly ILogger _logger;
@@ -54,9 +59,19 @@ namespace Finite.Commands
             await foreach (var context in reader.ReadAllAsync(stoppingToken))
             {
                 CommandExecuting(_logger, context.Path, null);
-                // TODO: execute command
-                CommandExecuted(_logger, context.Path, null);
-                _contextFactory.ReleaseContext(context);
+                try
+                {
+                    await context.Command.ExecuteAsync(context, stoppingToken);
+                }
+                catch (Exception e)
+                {
+                    CommandFailed(_logger, context.Path, e);
+                }
+                finally
+                {
+                    CommandExecuted(_logger, context.Path, null);
+                    _contextFactory.ReleaseContext(context);
+                }
             }
         }
     }

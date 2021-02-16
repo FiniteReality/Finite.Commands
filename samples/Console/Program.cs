@@ -25,9 +25,6 @@ namespace ConsoleCommands
             _ = services.AddCommands()
                 .AddPositionalCommandParser();
 
-            _ = services.AddSingleton<IParameterBinder<int>, IntBinder>();
-            _ = services.AddSingleton<IParameterBinder<string>, StringBinder>();
-
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<ICommand, HelloWorldCommand>());
             services.TryAddEnumerable(

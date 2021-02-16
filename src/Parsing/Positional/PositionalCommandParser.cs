@@ -84,6 +84,8 @@ namespace Finite.Commands.Parsing
                 }
             }
 
+            context.Items[TokenCount] = parameterCount;
+
             Debug.Assert(commands != null);
 
             // TODO: make this injectable somehow
@@ -92,7 +94,10 @@ namespace Finite.Commands.Parsing
             foreach (var command in commands)
             {
                 if (binder.TryBind(context, command))
+                {
+                    context.Command = command;
                     return;
+                }
             }
 
             throw new Exception("Failed to bind to any commands");

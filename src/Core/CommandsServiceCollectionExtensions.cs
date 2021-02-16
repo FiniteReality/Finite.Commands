@@ -34,6 +34,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddScoped<ICommandResultExecutorFactory, DefaultCommandResultExecutorFactory>();
             services.TryAddScoped<IParameterBinderFactory, DefaultParameterBinderFactory>();
 
+            BinderUtility.AddAllBinders(services);
+
             _ = services.AddTransient(typeof(ParameterBinderWrapper<>));
 
             _ = services.AddHostedService(

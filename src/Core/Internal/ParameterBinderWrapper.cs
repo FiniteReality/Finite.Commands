@@ -12,7 +12,8 @@ namespace Finite.Commands
             _inner = inner;
         }
 
-        public object? Bind(ReadOnlySpan<char> text, out bool success)
-            => _inner.Bind(text, out success);
+        public object? Bind(IParameter parameter, ReadOnlySpan<char> text,
+            out bool success)
+            => _inner.Bind(parameter, text, out success);
     }
 }
