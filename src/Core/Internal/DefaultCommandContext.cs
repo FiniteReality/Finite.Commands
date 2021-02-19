@@ -6,7 +6,8 @@ namespace Finite.Commands
 {
     internal sealed class DefaultCommandContext : CommandContext
     {
-        public override CommandString Path { get; set; } = CommandString.Empty;
+        public override CommandString Path { get; set; }
+            = CommandString.Empty;
         public override IDictionary<object, object?> Items { get; set; }
             = new Dictionary<object, object?>();
         public override IDictionary<string, object?> Parameters { get; set; }

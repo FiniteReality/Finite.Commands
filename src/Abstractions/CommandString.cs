@@ -3,12 +3,11 @@ using System;
 namespace Finite.Commands
 {
     /// <summary>
-    /// Represents a significant token in a command.
+    /// Represents a significant portion of a <see cref="string"/> used in a
+    /// command.
     /// </summary>
     public readonly struct CommandString : IEquatable<CommandString>
     {
-        private const string Delimiter = " ";
-
         /// <summary>
         /// Represents the empty string. This field is read only.
         /// </summary>
@@ -30,15 +29,15 @@ namespace Finite.Commands
 
         /// <summary>
         /// Creates a new <see cref="CommandString"/> with the given
-        /// <paramref name="portion"/> of <paramref name="value"/>.
+        /// <paramref name="slice"/> of <paramref name="value"/>.
         /// </summary>
         /// <param name="value">
         /// The raw value.
         /// </param>
-        /// <param name="portion">
-        /// The token within <paramref name="value"/> to represent.
+        /// <param name="slice">
+        /// The slice of <paramref name="value"/> to represent.
         /// </param>
-        public CommandString(string value, Range portion)
+        public CommandString(string value, Range slice)
         {
             if (value is null)
                 throw new ArgumentNullException(nameof(value));
@@ -47,14 +46,14 @@ namespace Finite.Commands
                 throw new ArgumentException(null, nameof(value));
 
             // N.B. this validates whether portion is valid based on the string.
-            _ = portion.GetOffsetAndLength(value.Length);
+            _ = slice.GetOffsetAndLength(value.Length);
 
             RawValue = value;
-            Portion = portion;
+            Portion = slice;
         }
 
         /// <summary>
-        /// Gets the unescaped token value.
+        /// Gets the raw value of this <see cref="CommandString"/>.
         /// </summary>
         public string RawValue { get; }
 
@@ -77,81 +76,19 @@ namespace Finite.Commands
             => !Value.IsEmpty;
 
         /// <summary>
-        /// Combines two <see cref="CommandString"/> values into one.
-        /// </summary>
-        /// <param name="left">
-        /// The first value to combine.
-        /// </param>
-        /// <param name="right">
-        /// The second value to combine.
-        /// </param>
-        /// <returns>
-        /// The combined <see cref="CommandString"/>.
-        /// </returns>
-        public static CommandString Combine(CommandString left,
-            CommandString right)
-        {
-            var token = string.Create(
-                left.Value.Length +
-                right.Value.Length +
-                Delimiter.Length,
-                (left, right),
-                CreatePath);
-
-            return new CommandString(token);
-
-            static void CreatePath(Span<char> span,
-                (CommandString, CommandString) state)
-            {
-                var (left, right) = state;
-
-                left.Value.CopyTo(span);
-                Delimiter.AsSpan().CopyTo(span[left.Value.Length..]);
-                right.Value.CopyTo(
-                    span[(left.Value.Length + Delimiter.Length)..]);
-            }
-        }
-
-        /// <summary>
-        /// Extracts the command string corresponding to the previous token for
-        /// this string.
-        /// </summary>
-        /// <returns>
-        /// The command string, with the last token removed.
-        /// <see cref="Empty"/> if this command string contains no more tokens.
-        /// </returns>
-        public CommandString GetPreviousToken()
-        {
-            if (Value.IsEmpty)
-                return Empty;
-
-            var index = Value.LastIndexOf(Delimiter,
-                StringComparison.OrdinalIgnoreCase);
-
-            if (index < 0)
-                return Empty;
-
-            var (start, _) = Portion.GetOffsetAndLength(
-                RawValue.Length);
-
-            var portion = start .. (start + index);
-            return new CommandString(RawValue, portion);
-        }
-
-        /// <summary>
         /// Determines whether the beginning of this
         /// <see cref="CommandString"/> matches the specified
         /// <see cref="CommandString"/>.
         /// </summary>
-        /// <param name="parent">
+        /// <param name="value">
         /// The <see cref="CommandString"/> to compare.
         /// </param>
         /// <returns>
-        /// <c>true</c> if the value matches the beginning of this command
-        /// string; otherwise, <c>false</c>.
+        /// <c>true</c> if <paramref name="value"/> matches the beginning of
+        /// this command string; otherwise, <c>false</c>.
         /// </returns>
-        public bool StartsWith(CommandString parent)
-            => Value.StartsWith(parent.Value,
+        public bool StartsWith(CommandString value)
+            => Value.StartsWith(value.Value,
                 StringComparison.OrdinalIgnoreCase);
 
         /// <inheritdoc/>

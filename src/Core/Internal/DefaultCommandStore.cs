@@ -33,7 +33,7 @@ namespace Finite.Commands
         {
             foreach (var command in _commands)
             {
-                var path = command.Name.GetPreviousToken();
+                var path = CommandPath.GetParentPath(command.Name);
 
                 if (path == CommandString.Empty)
                     continue;
@@ -70,10 +70,10 @@ namespace Finite.Commands
             }
 
             public ICommandStoreSection? GetCommandGroup(CommandString prefix)
-                => _store.GetCommandGroup(CommandString.Combine(Name, prefix));
+                => _store.GetCommandGroup(CommandPath.Combine(Name, prefix));
 
             public IEnumerable<ICommand> GetCommands(CommandString name)
-                => _store.GetCommands(CommandString.Combine(Name, name));
+                => _store.GetCommands(CommandPath.Combine(Name, name));
         }
     }
 }
