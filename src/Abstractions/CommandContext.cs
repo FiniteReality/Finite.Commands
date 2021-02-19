@@ -11,7 +11,7 @@ namespace Finite.Commands
         /// <summary>
         /// Gets or sets the command path.
         /// </summary>
-        public abstract CommandPath Path { get; set; }
+        public abstract CommandString Path { get; set; }
 
         /// <summary>
         /// Gets or sets a key/value collection that can be used to share data

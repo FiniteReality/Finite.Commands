@@ -11,7 +11,7 @@ namespace ConsoleCommands
 {
     public class HelloWorldCommand : ICommand
     {
-        public CommandPath Name { get; } = new CommandPath("hello world");
+        public CommandString Name { get; } = new CommandString("hello world");
 
         public IReadOnlyList<IParameter> Parameters { get; }
             = GetParameters().ToArray();

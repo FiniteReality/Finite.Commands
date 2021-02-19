@@ -13,10 +13,10 @@ namespace Finite.Commands
             _commands = commands;
         }
 
-        public ICommandStoreSection? GetCommandGroup(CommandPath prefix)
+        public ICommandStoreSection? GetCommandGroup(CommandString prefix)
             => TryGetCommandGroup(prefix, out var section) ? section : null;
 
-        public IEnumerable<ICommand> GetCommands(CommandPath name)
+        public IEnumerable<ICommand> GetCommands(CommandString name)
         {
             foreach (var command in _commands)
             {
@@ -27,19 +27,19 @@ namespace Finite.Commands
             }
         }
 
-        private bool TryGetCommandGroup(CommandPath prefix,
+        private bool TryGetCommandGroup(CommandString prefix,
             [NotNullWhen(true)]
             out ICommandStoreSection? section)
         {
             foreach (var command in _commands)
             {
-                var path = command.Name.GetParentPath();
+                var path = command.Name.GetPreviousToken();
 
-                if (path == CommandPath.Empty)
+                if (path == CommandString.Empty)
                     continue;
 
-                if (prefix == CommandPath.Empty &&
-                    path != CommandPath.Empty)
+                if (prefix == CommandString.Empty &&
+                    path != CommandString.Empty)
                 {
                     section = new CommandStoreSection(this, prefix);
                     return true;
@@ -60,20 +60,20 @@ namespace Finite.Commands
         {
             private readonly DefaultCommandStore _store;
 
-            public CommandPath Name { get; }
+            public CommandString Name { get; }
 
             public CommandStoreSection(DefaultCommandStore store,
-                CommandPath prefix)
+                CommandString prefix)
             {
                 _store = store;
                 Name = prefix;
             }
 
-            public ICommandStoreSection? GetCommandGroup(CommandPath prefix)
-                => _store.GetCommandGroup(CommandPath.Combine(Name, prefix));
+            public ICommandStoreSection? GetCommandGroup(CommandString prefix)
+                => _store.GetCommandGroup(CommandString.Combine(Name, prefix));
 
-            public IEnumerable<ICommand> GetCommands(CommandPath name)
-                => _store.GetCommands(CommandPath.Combine(Name, name));
+            public IEnumerable<ICommand> GetCommands(CommandString name)
+                => _store.GetCommands(CommandString.Combine(Name, name));
         }
     }
 }

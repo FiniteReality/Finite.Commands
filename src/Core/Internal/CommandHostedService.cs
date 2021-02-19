@@ -9,20 +9,20 @@ namespace Finite.Commands
 {
     internal class CommandHostedService : BackgroundService, ICommandExecutor
     {
-        private static readonly Action<ILogger, CommandPath, Exception?> CommandExecuting
-            = LoggerMessage.Define<CommandPath>(
+        private static readonly Action<ILogger, CommandString, Exception?> CommandExecuting
+            = LoggerMessage.Define<CommandString>(
                 LogLevel.Information,
                 new EventId(0, nameof(CommandExecuting)),
                 "Executing command {command}");
 
-        private static readonly Action<ILogger, CommandPath, Exception?> CommandExecuted
-            = LoggerMessage.Define<CommandPath>(
+        private static readonly Action<ILogger, CommandString, Exception?> CommandExecuted
+            = LoggerMessage.Define<CommandString>(
                 LogLevel.Information,
                 new EventId(1, nameof(CommandExecuted)),
                 "Executed command {command}");
 
-        private static readonly Action<ILogger, CommandPath, Exception?> CommandFailed
-            = LoggerMessage.Define<CommandPath>(
+        private static readonly Action<ILogger, CommandString, Exception?> CommandFailed
+            = LoggerMessage.Define<CommandString>(
                 LogLevel.Warning,
                 new EventId(2, nameof(CommandFailed)),
                 "Failed to execute {command}");

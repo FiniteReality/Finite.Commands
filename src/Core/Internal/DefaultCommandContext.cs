@@ -6,7 +6,7 @@ namespace Finite.Commands
 {
     internal sealed class DefaultCommandContext : CommandContext
     {
-        public override CommandPath Path { get; set; } = CommandPath.Empty;
+        public override CommandString Path { get; set; } = CommandString.Empty;
         public override IDictionary<object, object?> Items { get; set; }
             = new Dictionary<object, object?>();
         public override IDictionary<string, object?> Parameters { get; set; }
@@ -20,7 +20,7 @@ namespace Finite.Commands
 
         internal void Reset()
         {
-            Path = CommandPath.Empty;
+            Path = CommandString.Empty;
             Items.Clear();
             Parameters.Clear();
             ServiceScope.Dispose();

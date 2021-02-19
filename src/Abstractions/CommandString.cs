@@ -3,25 +3,25 @@ using System;
 namespace Finite.Commands
 {
     /// <summary>
-    /// Represents a command path.
+    /// Represents a significant token in a command.
     /// </summary>
-    public readonly struct CommandPath : IEquatable<CommandPath>
+    public readonly struct CommandString : IEquatable<CommandString>
     {
         private const string Delimiter = " ";
 
         /// <summary>
-        /// Represents the empty path. This field is read only.
+        /// Represents the empty string. This field is read only.
         /// </summary>
-        public static readonly CommandPath Empty = new(string.Empty);
+        public static readonly CommandString Empty = new(string.Empty);
 
         /// <summary>
-        /// Creates a new <see cref="CommandPath"/> with the given
+        /// Creates a new <see cref="CommandString"/> with the given
         /// <paramref name="value"/>.
         /// </summary>
         /// <param name="value">
-        /// The path for the command.
+        /// The raw value.
         /// </param>
-        public CommandPath(string? value)
+        public CommandString(string? value)
         {
             RawValue = value ?? string.Empty;
 
@@ -29,16 +29,16 @@ namespace Finite.Commands
         }
 
         /// <summary>
-        /// Creates a new <see cref="CommandPath"/> with the given
+        /// Creates a new <see cref="CommandString"/> with the given
         /// <paramref name="portion"/> of <paramref name="value"/>.
         /// </summary>
         /// <param name="value">
-        /// The entire path of the command.
+        /// The raw value.
         /// </param>
         /// <param name="portion">
-        /// The portion of <paramref name="value"/> to use.
+        /// The token within <paramref name="value"/> to represent.
         /// </param>
-        public CommandPath(string value, Range portion)
+        public CommandString(string value, Range portion)
         {
             if (value is null)
                 throw new ArgumentNullException(nameof(value));
@@ -54,7 +54,7 @@ namespace Finite.Commands
         }
 
         /// <summary>
-        /// Gets the unescaped path value.
+        /// Gets the unescaped token value.
         /// </summary>
         public string RawValue { get; }
 
@@ -77,7 +77,7 @@ namespace Finite.Commands
             => !Value.IsEmpty;
 
         /// <summary>
-        /// Combines two <see cref="CommandPath"/> values into one.
+        /// Combines two <see cref="CommandString"/> values into one.
         /// </summary>
         /// <param name="left">
         /// The first value to combine.
@@ -86,21 +86,22 @@ namespace Finite.Commands
         /// The second value to combine.
         /// </param>
         /// <returns>
-        /// The combined <see cref="CommandPath"/>.
+        /// The combined <see cref="CommandString"/>.
         /// </returns>
-        public static CommandPath Combine(CommandPath left, CommandPath right)
+        public static CommandString Combine(CommandString left,
+            CommandString right)
         {
-            var path = string.Create(
+            var token = string.Create(
                 left.Value.Length +
                 right.Value.Length +
                 Delimiter.Length,
                 (left, right),
                 CreatePath);
 
-            return new CommandPath(path);
+            return new CommandString(token);
 
             static void CreatePath(Span<char> span,
-                (CommandPath, CommandPath) state)
+                (CommandString, CommandString) state)
             {
                 var (left, right) = state;
 
@@ -112,15 +113,14 @@ namespace Finite.Commands
         }
 
         /// <summary>
-        /// Extracts the command path corresponding to the parent node for this
-        /// path.
+        /// Extracts the command string corresponding to the previous token for
+        /// this string.
         /// </summary>
         /// <returns>
-        /// The original command path, without the last segment found in it.
-        /// <see cref="Empty"/> if this command path refers to a top-level
-        /// command path.
+        /// The command string, with the last token removed.
+        /// <see cref="Empty"/> if this command string contains no more tokens.
         /// </returns>
-        public CommandPath GetParentPath()
+        public CommandString GetPreviousToken()
         {
             if (Value.IsEmpty)
                 return Empty;
@@ -135,21 +135,22 @@ namespace Finite.Commands
                 RawValue.Length);
 
             var portion = start .. (start + index);
-            return new CommandPath(RawValue, portion);
+            return new CommandString(RawValue, portion);
         }
 
         /// <summary>
-        /// Determines whether the beginning of this <see cref="CommandPath"/>
-        /// matches the specified <see cref="CommandPath"/>.
+        /// Determines whether the beginning of this
+        /// <see cref="CommandString"/> matches the specified
+        /// <see cref="CommandString"/>.
         /// </summary>
         /// <param name="parent">
-        /// The <see cref="CommandPath"/> to compare.
+        /// The <see cref="CommandString"/> to compare.
         /// </param>
         /// <returns>
-        /// <code>true</code> if the value matches the beginning of this path;
-        /// otherwise, <code>false</code>.
+        /// <c>true</c> if the value matches the beginning of this command
+        /// string; otherwise, <c>false</c>.
         /// </returns>
-        public bool StartsWith(CommandPath parent)
+        public bool StartsWith(CommandString parent)
             => Value.StartsWith(parent.Value,
                 StringComparison.OrdinalIgnoreCase);
 
@@ -158,11 +159,12 @@ namespace Finite.Commands
             => HasValue ? new string(Value) : string.Empty;
 
         /// <inheritdoc/>
-        public bool Equals(CommandPath other)
+        public bool Equals(CommandString other)
             => Equals(other, StringComparison.OrdinalIgnoreCase);
 
         /// <inheritdoc/>
-        public bool Equals(CommandPath other, StringComparison comparisonType)
+        public bool Equals(CommandString other,
+            StringComparison comparisonType)
             => !(HasValue || other.HasValue)
                 || MemoryExtensions.Equals(Value, other.Value,
                     comparisonType);
@@ -172,7 +174,7 @@ namespace Finite.Commands
             => obj switch
             {
                 null => !HasValue,
-                CommandPath other => Equals(other),
+                CommandString other => Equals(other),
                 _ => false
             };
 
@@ -184,11 +186,11 @@ namespace Finite.Commands
                 : 0;
 
         /// <inheritdoc/>
-        public static bool operator ==(CommandPath left, CommandPath right)
+        public static bool operator ==(CommandString left, CommandString right)
             => left.Equals(right);
 
         /// <inheritdoc/>
-        public static bool operator !=(CommandPath left, CommandPath right)
+        public static bool operator !=(CommandString left, CommandString right)
             => !left.Equals(right);
     }
 }

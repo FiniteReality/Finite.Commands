@@ -12,7 +12,7 @@ namespace ConsoleCommands
     {
         private static readonly Random Rng = new();
 
-        public CommandPath Name { get; } = new CommandPath("other");
+        public CommandString Name { get; } = new CommandString("other");
 
         public IReadOnlyList<IParameter> Parameters
             => Array.Empty<IParameter>();

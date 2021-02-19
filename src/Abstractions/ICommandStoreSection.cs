@@ -9,6 +9,6 @@ namespace Finite.Commands
         /// <summary>
         /// Gets the name of this section.
         /// </summary>
-        CommandPath Name { get; }
+        CommandString Name { get; }
     }
 }

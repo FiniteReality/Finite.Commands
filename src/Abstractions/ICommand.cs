@@ -11,10 +11,10 @@ namespace Finite.Commands
     public interface ICommand
     {
         /// <summary>
-        /// Gets the <see cref="CommandPath"/>. which can be used to invoke
+        /// Gets the <see cref="CommandString"/>. which can be used to invoke
         /// this command overload.
         /// </summary>
-        CommandPath Name { get; }
+        CommandString Name { get; }
 
         /// <summary>
         /// Gets the parameters which can be used to pass information to this

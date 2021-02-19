@@ -71,7 +71,7 @@ namespace Finite.Commands.Parsing
                             $"Command store has no command '{token}'",
                             nameof(message));
 
-                    context.Path = new CommandPath(message,
+                    context.Path = new CommandString(message,
                         start.Value..token.Portion.End);
                 }
                 else
@@ -119,7 +119,7 @@ namespace Finite.Commands.Parsing
         }
 
         // Internal for unit tests
-        internal static IEnumerable<CommandPath> Lex(string message)
+        internal static IEnumerable<CommandString> Lex(string message)
         {
             var start = Index.Start;
 
@@ -150,7 +150,7 @@ namespace Finite.Commands.Parsing
 
                             var range = start..end;
 
-                            yield return new CommandPath(message, range);
+                            yield return new CommandString(message, range);
                             state = ParserState.TokenEnd;
                         }
                         break;
@@ -162,7 +162,7 @@ namespace Finite.Commands.Parsing
                             var end = Index.FromStart(x);
                             var range = start..end;
 
-                            yield return new CommandPath(message, range);
+                            yield return new CommandString(message, range);
                             state = ParserState.TokenEnd;
                         }
                         break;
@@ -182,7 +182,7 @@ namespace Finite.Commands.Parsing
             // token, we forcibly finish it here.
             if (state != ParserState.TokenEnd)
             {
-                yield return new CommandPath(message, Range.StartAt(start));
+                yield return new CommandString(message, Range.StartAt(start));
             }
         }
 
