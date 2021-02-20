@@ -10,6 +10,7 @@ namespace Finite.Commands
         private static readonly Type ICommandResult = typeof(ICommandResult);
         private static readonly Type CommandResultExecutorWrapper
             = typeof(CommandResultExecutorWrapper<>);
+
         private readonly IServiceProvider _services;
 
         public DefaultCommandResultExecutorFactory(IServiceProvider services)

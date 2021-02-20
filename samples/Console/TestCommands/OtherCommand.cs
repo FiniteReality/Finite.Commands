@@ -20,7 +20,7 @@ namespace ConsoleCommands
         public IReadOnlyDictionary<object, object?> Data { get; }
             = new Dictionary<object, object?>();
 
-        public ValueTask ExecuteAsync(CommandContext context,
+        public ValueTask<ICommandResult> ExecuteAsync(CommandContext context,
             CancellationToken cancellationToken)
         {
             var logger = context.Services.GetRequiredService<ILogger<OtherCommand>>();
@@ -31,8 +31,8 @@ namespace ConsoleCommands
                 throw new Exception("This exception happens occasionally");
 
             return cancellationToken.IsCancellationRequested
-                ? ValueTask.FromCanceled(cancellationToken)
-                : default;
+                ? ValueTask.FromCanceled<ICommandResult>(cancellationToken)
+                : new(new NoContentCommandResult());
         }
     }
 }

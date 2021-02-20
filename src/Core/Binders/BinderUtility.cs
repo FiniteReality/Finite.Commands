@@ -1,3 +1,4 @@
+using Finite.Commands.Binders;
 using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +9,9 @@ namespace Finite.Commands
     {
         private static readonly Type IParameterBinderType
             = typeof(IParameterBinder<>);
+
+        private static readonly Type NumericBinderType
+            = typeof(NumericBinder<>);
 
         public static void AddAllBinders(IServiceCollection services)
         {
@@ -25,8 +29,11 @@ namespace Finite.Commands
 
             static IEnumerable<Type> GetAllBinders()
             {
-                yield return typeof(IntBinder);
                 yield return typeof(StringBinder);
+                yield return typeof(GuidBinder);
+
+                foreach (var type in NumericBinder.SupportedTypes.Keys)
+                    yield return NumericBinderType.MakeGenericType(type);
             }
 
             static IEnumerable<Type> GetAllBinderImpls(Type binder)

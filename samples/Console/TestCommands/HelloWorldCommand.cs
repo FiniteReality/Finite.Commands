@@ -25,7 +25,7 @@ namespace ConsoleCommands
             yield return new RemainderParameter("cool", typeof(string));
         }
 
-        public ValueTask ExecuteAsync(CommandContext context,
+        public ValueTask<ICommandResult> ExecuteAsync(CommandContext context,
             CancellationToken cancellationToken)
         {
             var logger = context.Services.GetRequiredService<ILogger<HelloWorldCommand>>();
@@ -33,8 +33,8 @@ namespace ConsoleCommands
             logger.LogInformation("Hello, world from the command!");
 
             return cancellationToken.IsCancellationRequested
-                ? ValueTask.FromCanceled(cancellationToken)
-                : default;
+                ? ValueTask.FromCanceled<ICommandResult>(cancellationToken)
+                : new(new NoContentCommandResult());
         }
     }
 

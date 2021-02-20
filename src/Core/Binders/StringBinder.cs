@@ -1,6 +1,6 @@
 using System;
 
-namespace Finite.Commands
+namespace Finite.Commands.Binders
 {
     internal sealed class StringBinder : IParameterBinder<string>
     {

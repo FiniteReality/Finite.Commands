@@ -41,7 +41,7 @@ namespace Finite.Commands
         /// A <see cref="ValueTask"/> which represents the completion of the
         /// command.
         /// </returns>
-        ValueTask ExecuteAsync(CommandContext context,
+        ValueTask<ICommandResult> ExecuteAsync(CommandContext context,
             CancellationToken cancellationToken);
     }
 }
