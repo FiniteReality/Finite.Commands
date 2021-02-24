@@ -32,15 +32,14 @@ namespace Finite.Commands.AttributedModel
         /// An <see cref="AssemblyBuilder"/> which can be used to populate the
         /// assembly.
         /// </returns>
-#pragma warning disable CA1822 // Instance method to force access through scope
         public AssemblyBuilder DefineDynamicAssembly(string name)
-#pragma warning restore CA1822
         {
             var assemblyName = new AssemblyName(
                 $"Finite.Commands.Models.AttributedModel.Internal.{name}");
 
-            return AssemblyBuilder.DefineDynamicAssembly(assemblyName,
-                AssemblyBuilderAccess.RunAndCollect);
+            using var scope = EnterContextualReflection();
+                return AssemblyBuilder.DefineDynamicAssembly(assemblyName,
+                    AssemblyBuilderAccess.RunAndCollect);
         }
 
         protected override Assembly? Load(AssemblyName assemblyName)
