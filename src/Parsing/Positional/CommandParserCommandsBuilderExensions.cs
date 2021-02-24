@@ -23,7 +23,7 @@ namespace Finite.Commands.Parsing
         public static ICommandsBuilder AddPositionalCommandParser(
             this ICommandsBuilder builder)
         {
-            builder.Services.TryAddSingleton<ICommandParser, PositionalCommandParser>();
+            builder.Services.TryAddScoped<ICommandParser, PositionalCommandParser>();
             builder.Services.TryAddScoped<ICommandBinder, PositionalCommandBinder>();
 
             return builder;

@@ -26,8 +26,8 @@ namespace Finite.Commands
         /// The <see cref="CommandString"/> to search for commands.
         /// </param>
         /// <returns>
-        /// A <see cref="IEnumerable{T}"/> containing all possible overloads of
-        /// commands with the given <paramref name="name"/>.
+        /// An <see cref="IEnumerable{T}"/> containing all possible overloads
+        /// of commands with the given <paramref name="name"/>.
         /// </returns>
         IEnumerable<ICommand> GetCommands(CommandString name);
     }

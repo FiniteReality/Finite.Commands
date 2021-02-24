@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Finite.Commands;
@@ -13,17 +16,20 @@ namespace ConsoleCommands
         private readonly ICommandContextFactory _commandContextFactory;
         private readonly ICommandExecutor _commandExecutor;
         private readonly ICommandParser _commandParser;
+        private readonly ICommandStore _commandStore;
         private readonly ILogger _logger;
 
         public LineReaderService(
             ICommandContextFactory commandContextFactory,
-            ICommandParser commandParser,
             ICommandExecutor commandExecutor,
+            ICommandParser commandParser,
+            ICommandStore commandStore,
             ILogger<LineReaderService> logger)
         {
             _commandContextFactory = commandContextFactory;
             _commandExecutor = commandExecutor;
             _commandParser = commandParser;
+            _commandStore = commandStore;
             _logger = logger;
         }
 
@@ -33,6 +39,17 @@ namespace ConsoleCommands
             _logger.LogWarning(
                 "Starting LineReaderService. Console output may appear "+
                 "garbled.");
+
+            // HACK: Since the command store has no way of getting *all*
+            // registered commands, we have to do this currently
+            var commandCount = ((List<ICommand>)_commandStore.GetType()
+                .GetField("_currentCommands",
+                    BindingFlags.NonPublic | BindingFlags.Instance)!
+                .GetValue(_commandStore)!)
+                .Count;
+
+            _logger.LogInformation("Command store contains {count} commands",
+                commandCount);
 
             // N.B. since Console.ReadLine() can't be cancelled or done
             // asynchronously, we forcibly yield here to ensure other services

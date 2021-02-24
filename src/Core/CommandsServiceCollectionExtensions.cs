@@ -29,12 +29,13 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.TryAddSingleton<CommandHostedService>();
             services.TryAddSingleton<ICommandContextFactory, DefaultCommandContextFactory>();
-            services.TryAddSingleton<ICommandStore, DefaultCommandStore>();
 
             services.TryAddScoped<CommandExecutor>();
+            services.TryAddScoped<ICommandStore, DefaultCommandStore>();
             services.TryAddScoped<ICommandResultExecutorFactory, DefaultCommandResultExecutorFactory>();
             services.TryAddScoped<IParameterBinderFactory, DefaultParameterBinderFactory>();
 
+            services.TryAddTransient(typeof(CommandResultExecutorWrapper<>));
             services.TryAddTransient<ICommandResultExecutor<NoContentCommandResult>, NoContentCommandResultExecutor>();
 
             BinderUtility.AddAllBinders(services);

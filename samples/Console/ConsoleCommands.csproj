@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Core/Finite.Commands.Core.csproj" />
     <ProjectReference Include="../../src/Parsing/Positional/Finite.Commands.Parsing.Positional.csproj" />
+    <ProjectReference Include="../../src/Models/Attributed/Finite.Commands.Models.AttributedModel.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,16 +1,66 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading;
+using Microsoft.Extensions.Primitives;
 
 namespace Finite.Commands
 {
     internal sealed class DefaultCommandStore
-        : ICommandStore
+        : ICommandStore, IDisposable
     {
-        private readonly IEnumerable<ICommand> _commands;
+        private readonly ICommandProvider[] _commandProviders;
+        private readonly IDisposable _commandChangeToken;
+        private readonly List<ICommand> _currentCommands;
 
-        public DefaultCommandStore(IEnumerable<ICommand> commands)
+        private CancellationTokenSource _reloadCancellation;
+
+        public DefaultCommandStore(
+            IEnumerable<ICommandProvider> commandProviders)
         {
-            _commands = commands;
+            _commandProviders = commandProviders.ToArray();
+
+            _currentCommands = new();
+
+            var changeToken = new CompositeChangeToken(
+                _commandProviders
+                    .Select(static x => x.GetChangeToken())
+                    .ToList());
+
+            _commandChangeToken = changeToken
+                .RegisterChangeCallback(OnCommandsChanged, this);
+
+            OnCommandsChanged(this);
+            Debug.Assert(_reloadCancellation != null);
+        }
+
+        public void Dispose()
+        {
+            _commandChangeToken.Dispose();
+            _reloadCancellation.Dispose();
+        }
+
+        private static void OnCommandsChanged(object state)
+        {
+            var store = (DefaultCommandStore)state;
+
+            var currentCancelTokenSource = new CancellationTokenSource();
+            Interlocked.Exchange(
+                ref store._reloadCancellation, currentCancelTokenSource)
+                ?.Cancel();
+
+            currentCancelTokenSource.Token.ThrowIfCancellationRequested();
+            store._currentCommands.Clear();
+
+            foreach (var provider in store._commandProviders)
+            {
+                currentCancelTokenSource.Token.ThrowIfCancellationRequested();
+                store._currentCommands.AddRange(provider.GetCommands());
+            }
+
+            currentCancelTokenSource.Cancel();
         }
 
         public ICommandStoreSection? GetCommandGroup(CommandString prefix)
@@ -18,20 +68,16 @@ namespace Finite.Commands
 
         public IEnumerable<ICommand> GetCommands(CommandString name)
         {
-            foreach (var command in _commands)
-            {
+            foreach (var command in _currentCommands)
                 if (name == command.Name)
-                {
                     yield return command;
-                }
-            }
         }
 
         private bool TryGetCommandGroup(CommandString prefix,
             [NotNullWhen(true)]
             out ICommandStoreSection? section)
         {
-            foreach (var command in _commands)
+            foreach (var command in _currentCommands)
             {
                 var path = CommandPath.GetParentPath(command.Name);
 

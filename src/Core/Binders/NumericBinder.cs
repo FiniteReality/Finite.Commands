@@ -95,7 +95,7 @@ namespace Finite.Commands.Binders
                     typeof(ReadOnlySpan<char>),
                     typeof(NumberStyles),
                     typeof(IFormatProvider),
-                    typeof(T)
+                    typeof(T).MakeByRefType()
                 });
 
             Debug.Assert(method != null);

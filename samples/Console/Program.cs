@@ -23,12 +23,9 @@ namespace ConsoleCommands
             _ = services.Configure<HostOptions>(x => x.ShutdownTimeout = TimeSpan.Zero);
 
             _ = services.AddCommands()
-                .AddPositionalCommandParser();
-
-            services.TryAddEnumerable(
-                ServiceDescriptor.Singleton<ICommand, HelloWorldCommand>());
-            services.TryAddEnumerable(
-                ServiceDescriptor.Singleton<ICommand, OtherCommand>());
+                .AddPositionalCommandParser()
+                .AddAttributedCommands(x => x.Assemblies.Add(
+                    typeof(Program).Assembly.Location));
 
             _ = services.AddHostedService<LineReaderService>();
         }
