@@ -22,7 +22,7 @@ namespace ConsoleCommands
 
         [Command("world")]
         public ValueTask<ICommandResult> HelloWorldCommand(
-            CancellationToken cancellationToken)
+            int coolParameter, [Remainder]string coolerParameter)
         {
             _logger.LogInformation("Hello world from HelloModule!");
 

@@ -10,8 +10,33 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Finite.Commands.AttributedModel.SourceGenerator
 {
     [Generator]
-    public class AttributedModelSourceGenerator : ISourceGenerator
+    public partial class AttributedModelSourceGenerator : ISourceGenerator
     {
+        private static readonly string[] AlwaysActiveNamespaces
+            = new[]
+            {
+                "System",
+                "System.Collections.Generic",
+                "System.Threading",
+                "System.Threading.Tasks",
+                "Microsoft.Extensions.DependencyInjection"
+            };
+
+        static string GetStringFromAttribute(ISymbol symbol,
+            INamedTypeSymbol attributeType)
+        {
+            var attribute = symbol.GetAttributes()
+                .First(x => SymbolEqualityComparer.Default.Equals(
+                    x.AttributeClass, attributeType));
+            var firstArgument = attribute.ConstructorArguments.First();
+
+            return firstArgument.Value is not string result
+                ? throw new InvalidOperationException(
+                    $"First argument to attribute {attributeType.Name} " +
+                    "was not a string")
+                : result;
+        }
+
         public void Execute(GeneratorExecutionContext context)
         {
             // TODO: generate source
@@ -28,134 +53,42 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                 var commandAttributeSymbol = context.Compilation
                     .GetTypeByMetadataName(
                         "Finite.Commands.AttributedModel.CommandAttribute");
+                var remainderAttributeSymbol = context.Compilation
+                    .GetTypeByMetadataName(
+                        "Finite.Commands.AttributedModel.RemainderAttribute");
 
                 Debug.Assert(groupAttributeSymbol != null);
                 Debug.Assert(commandAttributeSymbol != null);
+                Debug.Assert(remainderAttributeSymbol != null);
 
-                var _classSymbol = semanticModel.GetDeclaredSymbol(module.Key);
-                if (_classSymbol is null)
+                if (semanticModel.GetDeclaredSymbol(module.Key) is
+                    not INamedTypeSymbol classSymbol)
                     throw new InvalidOperationException(
-                        $"Could not find symbol for {module.Key.Identifier}");
-                if (_classSymbol is not INamedTypeSymbol classSymbol)
-                    throw new InvalidOperationException(
-                        $"Could not find named type symbol for {module.Key.Identifier}");
+                        "Could not find named type symbol for " +
+                        $"{module.Key.Identifier}");
 
 
                 foreach (var method in module)
                 {
-                    var _methodSymbol = semanticModel.GetDeclaredSymbol(method);
-                    if (_methodSymbol is null)
+                    if (semanticModel.GetDeclaredSymbol(method) is
+                        not IMethodSymbol methodSymbol)
                         throw new InvalidOperationException(
-                            $"Could not find symbol for {method.Identifier}");
-                    if (_methodSymbol is not IMethodSymbol methodSymbol)
-                        throw new InvalidOperationException(
-                            $"Could not find method symbol for {method.Identifier}");
+                            "Could not find method symbol for " +
+                            $"{method.Identifier}");
 
                     context.AddSource(
-                        $"CommandFactory__{module.Key.Identifier}__{method.Identifier}",
-                        GenerateSourceString(classSymbol, methodSymbol,
+                        $"CommandFactory__{classSymbol.Name}__{methodSymbol.Name}",
+                        GenerateCommandSource(classSymbol, methodSymbol,
                             groupAttributeSymbol!, commandAttributeSymbol!));
 
-                    /*foreach (var parameter)
+                    foreach (var parameterSymbol in methodSymbol.Parameters)
                     {
                         context.AddSource(
-                            $"CommandFactory__{module.Key.Identifier}__{method.Identifier}__{parameter.Identifier}",
-                            GenerateSourceString(classSymbol, methodSymbol,
-                                groupAttributeSymbol!, commandAttributeSymbol!));
-                    }*/
-                }
-            }
-
-            static string GenerateSourceString(
-                INamedTypeSymbol @class,
-                IMethodSymbol method,
-                INamedTypeSymbol groupAttributeSymbol,
-                INamedTypeSymbol commandAttributeSymbol)
-            {
-                var commandPath = string.Empty;
-                {
-                    var segment = GetStringFromAttribute(method,
-                        commandAttributeSymbol);
-
-                    commandPath = $"new CommandString(\"{segment}\")";
-
-                    var currentClass = @class;
-                    do
-                    {
-                        segment = GetStringFromAttribute(currentClass,
-                            groupAttributeSymbol);
-
-                        commandPath =
-                            "CommandPath.Combine(" +
-                            $"new CommandString(\"{segment}\"), " +
-                            $"{commandPath})";
-
-                        currentClass = @class.ContainingType;
+                            $"CommandFactory__{module.Key.Identifier}__{method.Identifier}__{parameterSymbol.Name}",
+                            GenerateParameterSource(classSymbol, methodSymbol,
+                                parameterSymbol, remainderAttributeSymbol!));
                     }
-                    while (currentClass != null);
                 }
-
-                return
-$@"using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-
-using {@class.ContainingNamespace.MetadataName};
-
-namespace Finite.Commands.AttributedModel.Internal.Commands
-{{
-    class CommandFactory__{@class.Name}__{method.Name} : ICommand
-    {{
-        private static ObjectFactory CommandClassFactory
-            = ActivatorUtilities.CreateFactory(
-                typeof({@class.Name}),
-                Array.Empty<Type>());
-
-        public CommandString Name {{ get; }} = {commandPath};
-
-        public IReadOnlyList<IParameter> Parameters
-            => Array.Empty<IParameter>();
-
-        public IReadOnlyDictionary<object, object?> Data
-            => new Dictionary<object, object?>();
-
-        public async ValueTask<ICommandResult> ExecuteAsync(
-            CommandContext context, CancellationToken cancellationToken)
-        {{
-            var commandClass = ({@class.Name})CommandClassFactory(
-                context.Services, Array.Empty<object?>());
-
-            Module.SetCommandContext(commandClass, context);
-
-            try
-            {{
-                return await commandClass.{method.Name}(cancellationToken);
-            }}
-            finally
-            {{
-                if (commandClass is IDisposable disposable)
-                    disposable.Dispose();
-            }}
-        }}
-    }}
-}}";
-            }
-
-            static string GetStringFromAttribute(ISymbol symbol,
-                INamedTypeSymbol attributeType)
-            {
-                var attribute = symbol.GetAttributes()
-                    .First(x => SymbolEqualityComparer.Default.Equals(
-                        x.AttributeClass, attributeType));
-                var firstArgument = attribute.ConstructorArguments.First();
-
-                return firstArgument.Value is not string result
-                    ? throw new InvalidOperationException(
-                        $"First argument to attribute {attributeType.Name} "+
-                        "was not a string")
-                    : result;
             }
         }
 
