@@ -21,7 +21,8 @@ namespace ConsoleCommands
         }
 
         [Command("world")]
-        public ValueTask<ICommandResult> HelloWorldCommand()
+        public ValueTask<ICommandResult> HelloWorldCommand(
+            CancellationToken cancellationToken)
         {
             _logger.LogInformation("Hello world from HelloModule!");
 

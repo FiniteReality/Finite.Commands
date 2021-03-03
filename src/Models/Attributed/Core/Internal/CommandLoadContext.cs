@@ -9,37 +9,14 @@ namespace Finite.Commands.AttributedModel
     {
         private readonly AssemblyDependencyResolver _resolver;
 
-        public Assembly OriginalAssembly { get; }
-        public AssemblyBuilder CommandsAssembly { get; }
+        public Assembly MainAssembly { get; }
 
         public CommandLoadContext(string mainAssembly)
             : base(true)
         {
             _resolver = new AssemblyDependencyResolver(mainAssembly);
 
-            OriginalAssembly = LoadFromAssemblyPath(mainAssembly);
-            CommandsAssembly = DefineDynamicAssembly("Commands");
-        }
-
-        /// <summary>
-        /// Defines a dynamic assembly with the given display name
-        /// <paramref name="name"/>.
-        /// </summary>
-        /// <param name="name">
-        /// The display name of the dynamic assembly.
-        /// </param>
-        /// <returns>
-        /// An <see cref="AssemblyBuilder"/> which can be used to populate the
-        /// assembly.
-        /// </returns>
-        public AssemblyBuilder DefineDynamicAssembly(string name)
-        {
-            var assemblyName = new AssemblyName(
-                $"Finite.Commands.Models.AttributedModel.Internal.{name}");
-
-            using var scope = EnterContextualReflection();
-                return AssemblyBuilder.DefineDynamicAssembly(assemblyName,
-                    AssemblyBuilderAccess.RunAndCollect);
+            MainAssembly = LoadFromAssemblyPath(mainAssembly);
         }
 
         protected override Assembly? Load(AssemblyName assemblyName)

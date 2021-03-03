@@ -40,8 +40,6 @@ namespace Finite.Commands.AttributedModel
             {
                 var context = new CommandLoadContext(assembly);
                 _loadContexts.Add(context);
-
-                CommandBuilder.BuildCommandsFor(context);
             }
 
             Interlocked.Exchange(ref _assembliesReloaded, new())?.Cancel();
@@ -57,7 +55,7 @@ namespace Finite.Commands.AttributedModel
         public IEnumerable<ICommand> GetCommands()
         {
             foreach (var context in _loadContexts)
-                foreach (var type in context.CommandsAssembly.GetTypes())
+                foreach (var type in context.MainAssembly.GetTypes())
                     if (ICommandType.IsAssignableFrom(type))
                         yield return (ICommand)Activator.CreateInstance(type)!;
         }
