@@ -24,13 +24,11 @@ namespace Finite.Commands
 
             _currentCommands = new();
 
-            var changeToken = new CompositeChangeToken(
-                _commandProviders
-                    .Select(static x => x.GetChangeToken())
-                    .ToList());
-
-            _commandChangeToken = changeToken
-                .RegisterChangeCallback(OnCommandsChanged, this);
+            _commandChangeToken = ChangeToken.OnChange(
+                () => new CompositeChangeToken(_commandProviders
+                        .Select(static x => x.GetChangeToken())
+                        .ToList()),
+                OnCommandsChanged, this);
 
             OnCommandsChanged(this);
             Debug.Assert(_reloadCancellation != null);

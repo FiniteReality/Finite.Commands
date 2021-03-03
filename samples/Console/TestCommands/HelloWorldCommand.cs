@@ -4,50 +4,28 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Finite.Commands;
+using Finite.Commands.AttributedModel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace ConsoleCommands
 {
-    public class HelloWorldCommand : ICommand
+    [Group("hello")]
+    public class HelloModule : Module
     {
-        public CommandString Name { get; } = new CommandString("hello world");
+        private readonly ILogger _logger;
 
-        public IReadOnlyList<IParameter> Parameters { get; }
-            = GetParameters().ToArray();
-
-        public IReadOnlyDictionary<object, object?> Data { get; }
-            = new Dictionary<object, object?>();
-
-        private static IEnumerable<IParameter> GetParameters()
+        public HelloModule(ILogger<HelloModule> logger)
         {
-            yield return new Parameter("message", typeof(int));
-            yield return new RemainderParameter("cool", typeof(string));
+            _logger = logger;
         }
 
-        public ValueTask<ICommandResult> ExecuteAsync(CommandContext context,
-            CancellationToken cancellationToken)
+        [Command("world")]
+        public ValueTask<ICommandResult> HelloWorldCommand()
         {
-            var logger = context.Services.GetRequiredService<ILogger<HelloWorldCommand>>();
+            _logger.LogInformation("Hello world from HelloModule!");
 
-            logger.LogInformation("Hello, world from the command!");
-
-            return cancellationToken.IsCancellationRequested
-                ? ValueTask.FromCanceled<ICommandResult>(cancellationToken)
-                : new(new NoContentCommandResult());
+            return new ValueTask<ICommandResult>(new NoContentCommandResult());
         }
-    }
-
-    internal record Parameter(string Name, Type Type) : IParameter
-    {
-        public IReadOnlyDictionary<object, object?> Data { get; }
-            = new Dictionary<object, object?>();
-    }
-
-    internal record RemainderParameter(string Name, Type Type)
-        : IParameter, IRemainderParameter
-    {
-        public IReadOnlyDictionary<object, object?> Data { get; }
-            = new Dictionary<object, object?>();
     }
 }

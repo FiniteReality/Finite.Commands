@@ -1,74 +1,163 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Threading;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Finite.Commands.AttributedModel
 {
-    internal class CommandBuilder : ICommandProvider, IDisposable
+    internal static class CommandBuilder
     {
-        private static readonly Type ICommandType = typeof(ICommand);
+        private static readonly Type ModuleType = typeof(Module);
 
-        private readonly List<CommandLoadContext> _loadContexts;
-        private readonly IDisposable _optionsChangeMonitor;
+        private static readonly MethodInfo CommandContextServicesGetterMethod
+            = typeof(CommandContext).GetProperty("Services")!.GetMethod!;
 
-        private CancellationTokenSource _reloadCancellation;
+        private static readonly MethodInfo CreateFactoryMethod
+            = typeof(ActivatorUtilities).GetMethod("CreateFactory")!;
 
-        public CommandBuilder(
-            IOptionsMonitor<AttributedCommandOptions> options)
+        private static readonly MethodInfo ArrayEmptyMethod
+            = typeof(Array).GetMethod("Empty", 1, Array.Empty<Type>())!;
+
+        private static readonly MethodInfo ExecuteAsyncMethod
+            = typeof(ICommand).GetMethod("ExecuteAsync")!;
+
+        private static readonly MethodInfo GetTypeFromHandleMethod
+            = typeof(Type).GetMethod("GetTypeFromHandle")!;
+
+        private static readonly ConstructorInfo ObjectConstructor
+            = typeof(object).GetConstructor(Array.Empty<Type>())!;
+
+        private static readonly MethodInfo ObjectFactoryInvokeMethod
+            = typeof(ObjectFactory).GetMethod("Invoke")!;
+
+        private static readonly MethodInfo UtilityExecuteAsyncMethod
+            = typeof(CommandUtility).GetMethod("ExecuteAsync")!;
+
+        public static void BuildCommandsFor(CommandLoadContext context)
         {
-            _loadContexts = new();
+            var module = context.CommandsAssembly
+                .DefineDynamicModule(
+                    $"{context.CommandsAssembly.GetName().Name}.dll");
 
-            _optionsChangeMonitor = options.OnChange(ReloadAssemblies);
-            ReloadAssemblies(options.CurrentValue);
-
-            Debug.Assert(_reloadCancellation != null);
+            foreach (var type in context.OriginalAssembly.ExportedTypes)
+                if (IsValidModule(type))
+                    BuildFactory(module, type);
         }
 
-        private void ReloadAssemblies(AttributedCommandOptions options)
+        private static void BuildFactory(
+            ModuleBuilder module, Type original)
         {
-            var currentCancelTokenSource = new CancellationTokenSource();
-            Interlocked.Exchange(
-                ref _reloadCancellation, currentCancelTokenSource)
-                ?.Cancel();
+            //var commands = new List<TypeBuilder>();
 
-            foreach (var context in _loadContexts)
+            foreach (var method in original.GetMethods())
             {
-                currentCancelTokenSource.Token.ThrowIfCancellationRequested();
-                context.Dispose();
+                if (IsValidCommand(method))
+                {
+                    var factory = module.DefineType(
+                        $"{method.Name}Factory",
+                        TypeAttributes.NotPublic | TypeAttributes.Sealed
+                        | TypeAttributes.Class);
+                    factory.AddInterfaceImplementation(typeof(ICommand));
+
+                    var factoryField = PopulateConstructor(factory, original);
+                    PopulateExecuteAsyncMethod(factory, method, factoryField);
+                    //commands.Add(factory);
+
+                    var type = factory.CreateType();
+                    Debug.Assert(type != null);
+                }
             }
-
-            currentCancelTokenSource.Token.ThrowIfCancellationRequested();
-            _loadContexts.Clear();
-
-            foreach (var assembly in options.Assemblies)
-            {
-                currentCancelTokenSource.Token.ThrowIfCancellationRequested();
-                _loadContexts.Add(new CommandLoadContext(assembly));
-            }
-
-            currentCancelTokenSource.Cancel();
         }
 
-        public void Dispose()
+        private static FieldInfo PopulateConstructor(TypeBuilder builder, Type type)
         {
-            _optionsChangeMonitor.Dispose();
-            _reloadCancellation.Cancel();
-            foreach (var context in _loadContexts)
-                context.Dispose();
+            var field = builder.DefineField("CommandInstanceFactory",
+                typeof(ObjectFactory),
+                FieldAttributes.Private | FieldAttributes.Static);
+
+            var ctor = builder.DefineConstructor(
+                MethodAttributes.Public,
+                CallingConventions.Standard,
+                Array.Empty<Type>());
+
+            var generator = ctor.GetILGenerator();
+
+            // Call base constructor
+            generator.Emit(OpCodes.Ldarg_0);
+            generator.Emit(OpCodes.Call, ObjectConstructor);
+
+            // Call ActivatorUtilities.CreateFactory(Type, Type[])
+            generator.Emit(OpCodes.Ldtoken, type);
+            generator.Emit(OpCodes.Call, GetTypeFromHandleMethod);
+            generator.Emit(OpCodes.Call,
+                ArrayEmptyMethod.MakeGenericMethod(typeof(Type)));
+            generator.Emit(OpCodes.Call, CreateFactoryMethod);
+
+            // CommandInstanceFactory = ActivatorUtilities.CreateFactory(
+            //     typeof(type), Array.Empty<Type>());
+            generator.Emit(OpCodes.Stsfld, field);
+
+            generator.Emit(OpCodes.Ret);
+
+            return field;
         }
 
-        public IEnumerable<ICommand> GetCommands()
+        private static void PopulateExecuteAsyncMethod(TypeBuilder type,
+            MethodInfo method, FieldInfo factoryField)
         {
-            foreach (var context in _loadContexts)
-                foreach (var type in context.EntryPoint.ExportedTypes)
-                    if (ICommandType.IsAssignableFrom(type))
-                        yield return (ICommand)Activator.CreateInstance(type)!;
+            var builder = type.DefineMethod("ExecuteAsync",
+                MethodAttributes.Public
+                | MethodAttributes.Final
+                | MethodAttributes.Virtual);
+
+            builder.SetReturnType(typeof(ValueTask<ICommandResult>));
+            builder.SetParameters(
+                typeof(CommandContext),
+                typeof(CancellationToken));
+
+            type.DefineMethodOverride(builder, ExecuteAsyncMethod);
+
+            var generator = builder.GetILGenerator();
+
+            // Create instance of method.DefiningType
+            // Pass to CommandUtility.ExecuteAsync
+            // return ValueTask<ICommandResult> from ExecuteAsync
+
+            // Create instance of method.DefiningType
+            generator.Emit(OpCodes.Ldsfld, factoryField);
+            generator.Emit(OpCodes.Ldarg_1);
+            generator.Emit(OpCodes.Callvirt,
+                CommandContextServicesGetterMethod);
+            generator.Emit(OpCodes.Call,
+                ArrayEmptyMethod.MakeGenericMethod(typeof(object)));
+            generator.Emit(OpCodes.Callvirt, ObjectFactoryInvokeMethod);
+
+            // TODO: push args
+            Debug.Assert(method.GetParameters().Length == 0);
+
+            // Call command method
+            generator.Emit(OpCodes.Callvirt, method);
+
+            // Call utility ExecuteAsync method on the result
+            generator.Emit(OpCodes.Call, UtilityExecuteAsyncMethod);
+
+            // Return the result
+            generator.Emit(OpCodes.Ret);
         }
 
-        public IChangeToken GetChangeToken()
-            => new CancellationChangeToken(_reloadCancellation.Token);
+        public static bool IsValidModule(Type type)
+            => ModuleType.IsAssignableFrom(type)
+                && type.GetMethods()
+                    .Any(x => x.GetCustomAttribute<CommandAttribute>() is {});
+
+        // TODO: validate the command
+        public static bool IsValidCommand(MethodInfo method)
+            => method.GetCustomAttribute<CommandAttribute>() is {}
+                && method.ReturnType == typeof(ValueTask<ICommandResult>);
     }
 }

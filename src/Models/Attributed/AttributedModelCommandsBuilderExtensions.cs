@@ -44,7 +44,7 @@ namespace Finite.Commands
             this ICommandsBuilder builder,
             Action<AttributedCommandOptions> configure)
         {
-            _ = builder.Services.AddSingleton<ICommandProvider, CommandBuilder>();
+            _ = builder.Services.AddSingleton<ICommandProvider, AttributedCommandProvider>();
             _ = builder.Services.Configure(configure);
 
             return builder;

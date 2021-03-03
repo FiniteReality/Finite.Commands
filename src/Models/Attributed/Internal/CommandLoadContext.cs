@@ -9,16 +9,16 @@ namespace Finite.Commands.AttributedModel
     {
         private readonly AssemblyDependencyResolver _resolver;
 
-        public string EntryPointPath { get; }
-        public Assembly EntryPoint { get; }
+        public Assembly OriginalAssembly { get; }
+        public AssemblyBuilder CommandsAssembly { get; }
 
         public CommandLoadContext(string mainAssembly)
             : base(true)
         {
-            EntryPointPath = mainAssembly;
-
             _resolver = new AssemblyDependencyResolver(mainAssembly);
-            EntryPoint = LoadFromAssemblyPath(mainAssembly);
+
+            OriginalAssembly = LoadFromAssemblyPath(mainAssembly);
+            CommandsAssembly = DefineDynamicAssembly("Commands");
         }
 
         /// <summary>

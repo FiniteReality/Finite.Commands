@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- NOTE: keep in sync with CommandLoadContext -->
+    <InternalsVisibleTo Include="Finite.Commands.Models.AttributedModel.Internal.Commands" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../../Abstractions/Finite.Commands.Abstractions.csproj" />
     <ProjectReference Include="../../Core/Finite.Commands.Core.csproj" />
   </ItemGroup>
