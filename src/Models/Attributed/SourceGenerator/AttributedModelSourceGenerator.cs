@@ -12,6 +12,18 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
     [Generator]
     public partial class AttributedModelSourceGenerator : ISourceGenerator
     {
+        private static readonly DiagnosticDescriptor
+            MissingPositionalParserReference =
+                new(
+                    id: "FC0001",
+                    title: "Missing positional parser reference",
+                    messageFormat: "Parameter {0} of command {1} is marked " +
+                        "with RemainderAttribute, but the positional parser " +
+                        "is not referenced",
+                    category: "Usage",
+                    defaultSeverity: DiagnosticSeverity.Error,
+                    isEnabledByDefault: true);
+
         private static readonly string[] AlwaysActiveNamespaces
             = new[]
             {
@@ -21,21 +33,6 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                 "System.Threading.Tasks",
                 "Microsoft.Extensions.DependencyInjection"
             };
-
-        static string GetStringFromAttribute(ISymbol symbol,
-            INamedTypeSymbol attributeType)
-        {
-            var attribute = symbol.GetAttributes()
-                .First(x => SymbolEqualityComparer.Default.Equals(
-                    x.AttributeClass, attributeType));
-            var firstArgument = attribute.ConstructorArguments.First();
-
-            return firstArgument.Value is not string result
-                ? throw new InvalidOperationException(
-                    $"First argument to attribute {attributeType.Name} " +
-                    "was not a string")
-                : result;
-        }
 
         public void Execute(GeneratorExecutionContext context)
         {
@@ -61,12 +58,15 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                 Debug.Assert(commandAttributeSymbol != null);
                 Debug.Assert(remainderAttributeSymbol != null);
 
+                var hasPositionalAssembly = context.Compilation
+                    .ReferencedAssemblyNames
+                    .Any(x => x.Name == "Finite.Commands.Parsing.Positional");
+
                 if (semanticModel.GetDeclaredSymbol(module.Key) is
                     not INamedTypeSymbol classSymbol)
                     throw new InvalidOperationException(
                         "Could not find named type symbol for " +
                         $"{module.Key.Identifier}");
-
 
                 foreach (var method in module)
                 {
@@ -76,18 +76,37 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                             "Could not find method symbol for " +
                             $"{method.Identifier}");
 
+                    foreach (var parameterSymbol in methodSymbol.Parameters)
+                    {
+                        var hasRemainderAttribute = parameterSymbol
+                            .GetAttributes()
+                            .Any(x => SymbolEqualityComparer.Default.Equals(
+                                x.AttributeClass, remainderAttributeSymbol));
+
+                        if (hasRemainderAttribute && !hasPositionalAssembly)
+                        {
+                            foreach (var location in parameterSymbol.Locations)
+                                context.ReportDiagnostic(
+                                    Diagnostic.Create(
+                                        MissingPositionalParserReference,
+                                        location,
+                                        parameterSymbol.Name,
+                                        methodSymbol.ToDisplayString(
+                                            SymbolDisplayFormat
+                                                .CSharpErrorMessageFormat)));
+                            return;
+                        }
+
+                        context.AddSource(
+                            $"CommandFactory__{classSymbol.Name}__{methodSymbol.Name}__{parameterSymbol.Name}",
+                            GenerateParameterSource(classSymbol, methodSymbol,
+                                parameterSymbol, hasRemainderAttribute));
+                    }
+
                     context.AddSource(
                         $"CommandFactory__{classSymbol.Name}__{methodSymbol.Name}",
                         GenerateCommandSource(classSymbol, methodSymbol,
                             groupAttributeSymbol!, commandAttributeSymbol!));
-
-                    foreach (var parameterSymbol in methodSymbol.Parameters)
-                    {
-                        context.AddSource(
-                            $"CommandFactory__{module.Key.Identifier}__{method.Identifier}__{parameterSymbol.Name}",
-                            GenerateParameterSource(classSymbol, methodSymbol,
-                                parameterSymbol, remainderAttributeSymbol!));
-                    }
                 }
             }
         }
