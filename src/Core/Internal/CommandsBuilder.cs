@@ -1,28 +1,31 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Finite.Commands
 {
     internal class CommandsBuilder : ICommandsBuilder
     {
-        private readonly IList<Func<CommandCallback, CommandCallback>> _middlewareTypes;
+        private readonly CommandMiddlewareProvider _middlewareProvider;
 
-        public CommandsBuilder(IServiceCollection services)
+        public CommandsBuilder(CommandMiddlewareProvider middlewareProvider,
+            IServiceCollection services)
         {
             if (services is null)
                 throw new ArgumentNullException(nameof(services));
 
             Services = services;
 
-            _middlewareTypes = new List<Func<CommandCallback, CommandCallback>>();
+            _middlewareProvider = middlewareProvider;
         }
 
         public IServiceCollection Services { get; }
 
-        public ICommandsBuilder Use(Func<CommandCallback, CommandCallback> middleware)
+        public ICommandsBuilder Use(Func<CommandMiddleware, CommandContext, CancellationToken, ValueTask<ICommandResult>> middleware)
         {
-            _middlewareTypes.Add(middleware);
+            _middlewareProvider.Add(middleware);
 
             return this;
         }

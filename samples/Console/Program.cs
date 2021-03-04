@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Finite.Commands;
 using Finite.Commands.Parsing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace ConsoleCommands
 {
@@ -25,9 +28,23 @@ namespace ConsoleCommands
             _ = services.AddCommands()
                 .AddPositionalCommandParser()
                 .AddAttributedCommands(x => x.Assemblies.Add(
-                    typeof(Program).Assembly.Location));
+                    typeof(Program).Assembly.Location))
+                .Use(TestMiddlewareAsync);
 
             _ = services.AddHostedService<LineReaderService>();
+        }
+
+        private static async ValueTask<ICommandResult> TestMiddlewareAsync(
+            CommandMiddleware next, CommandContext context,
+            CancellationToken cancellationToken)
+        {
+            var logger = context.Services
+                .GetRequiredService<ILoggerFactory>()
+                .CreateLogger(typeof(Program).Name);
+
+            logger.LogInformation("Hello world from middleware!");
+
+            return await next();
         }
     }
 }

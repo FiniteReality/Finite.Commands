@@ -47,7 +47,10 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<ICommandExecutor>(
                 x => x.GetRequiredService<CommandHostedService>());
 
-            return new CommandsBuilder(services);
+            var middlewareProvider = new CommandMiddlewareProvider();
+            services.TryAddSingleton(middlewareProvider);
+
+            return new CommandsBuilder(middlewareProvider, services);
         }
     }
 }

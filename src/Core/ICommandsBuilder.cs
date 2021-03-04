@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Finite.Commands
@@ -23,6 +25,7 @@ namespace Finite.Commands
         /// <returns>
         /// The builder.
         /// </returns>
-        ICommandsBuilder Use(Func<CommandCallback, CommandCallback> middleware);
+        ICommandsBuilder Use(
+            Func<CommandMiddleware, CommandContext, CancellationToken, ValueTask<ICommandResult>> middleware);
     }
 }

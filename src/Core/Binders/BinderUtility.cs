@@ -31,6 +31,7 @@ namespace Finite.Commands
             {
                 yield return typeof(StringBinder);
                 yield return typeof(GuidBinder);
+                yield return typeof(BoolBinder);
 
                 foreach (var type in NumericBinder.SupportedTypes.Keys)
                     yield return NumericBinderType.MakeGenericType(type);

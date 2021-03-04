@@ -26,13 +26,16 @@ namespace Finite.Commands
                 "Failed to execute {command}");
 
         private readonly ILogger _logger;
+        private readonly CommandMiddlewareProvider _middlewareProvider;
         private readonly ICommandResultExecutorFactory _resultExecutorFactory;
 
         public CommandExecutor(
-            ILogger<ICommandExecutor> logger,
+            ILogger<CommandExecutor> logger,
+            CommandMiddlewareProvider middlewareProvider,
             ICommandResultExecutorFactory resultExecutorFactory)
         {
             _logger = logger;
+            _middlewareProvider = middlewareProvider;
             _resultExecutorFactory = resultExecutorFactory;
         }
 
@@ -42,8 +45,9 @@ namespace Finite.Commands
             CommandExecuting(_logger, context.Path, null);
             try
             {
-                var result = await context.Command
-                    .ExecuteAsync(context, cancellationToken);
+                var result = await _middlewareProvider.ExecuteCallbacksAsync(
+                    () => ExecuteCommandAsync(context, cancellationToken),
+                    context, cancellationToken);
 
                 var executor = _resultExecutorFactory.GetExecutor(
                     result.GetType());
@@ -57,6 +61,13 @@ namespace Finite.Commands
             finally
             {
                 CommandExecuted(_logger, context.Path, null);
+            }
+
+            static async ValueTask<ICommandResult> ExecuteCommandAsync(
+                CommandContext context, CancellationToken cancellationToken)
+            {
+                return await context.Command
+                    .ExecuteAsync(context, cancellationToken);
             }
         }
     }
