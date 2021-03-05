@@ -12,55 +12,50 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
     [Generator]
     public partial class AttributedModelSourceGenerator : ISourceGenerator
     {
-        private static readonly DiagnosticDescriptor
-            MissingPositionalParserReference =
-                new(
-                    id: "FC0001",
-                    title: "Missing positional parser reference",
-                    messageFormat: "Parameter {0} of command {1} is marked " +
-                        "with RemainderAttribute, but the positional parser " +
-                        "is not referenced",
-                    category: "Usage",
-                    defaultSeverity: DiagnosticSeverity.Error,
-                    isEnabledByDefault: true);
-
         private static readonly string[] AlwaysActiveNamespaces
             = new[]
             {
                 "System",
                 "System.Collections.Generic",
+                "System.Reflection",
                 "System.Threading",
                 "System.Threading.Tasks",
                 "Microsoft.Extensions.DependencyInjection"
             };
 
+        private static IEnumerable<string> GetDataFactoryAttributes(
+            Compilation compilation, string attributeName)
+            => compilation.Assembly.Modules
+                .SelectMany(x => x.ReferencedAssemblySymbols)
+                .SelectMany(x => x.GetAttributes())
+                .Where(x => x.AttributeClass?.Name == attributeName)
+                .Select(x => (x.ConstructorArguments.FirstOrDefault().Value as string)!)
+                .Where(x => x != null);
+
         public void Execute(GeneratorExecutionContext context)
         {
-            // TODO: generate source
             var receiver = (SyntaxReceiver)context.SyntaxContextReceiver!;
+
+            var groupAttributeSymbol = context.Compilation
+                .GetTypeByMetadataName(
+                    "Finite.Commands.AttributedModel.GroupAttribute");
+            var commandAttributeSymbol = context.Compilation
+                .GetTypeByMetadataName(
+                    "Finite.Commands.AttributedModel.CommandAttribute");
+
+            Debug.Assert(groupAttributeSymbol != null);
+            Debug.Assert(commandAttributeSymbol != null);
+
+            context.AddSource(
+                "DataProvider",
+                GenerateDataProviderSource(
+                    GetDataFactoryAttributes(context.Compilation,
+                        "AdditionalDataProviderFactoryAttribute")));
 
             foreach (var module in receiver.GetCommands())
             {
                 var semanticModel = context.Compilation.GetSemanticModel(
                     module.Key.SyntaxTree);
-
-                var groupAttributeSymbol = context.Compilation
-                    .GetTypeByMetadataName(
-                        "Finite.Commands.AttributedModel.GroupAttribute");
-                var commandAttributeSymbol = context.Compilation
-                    .GetTypeByMetadataName(
-                        "Finite.Commands.AttributedModel.CommandAttribute");
-                var remainderAttributeSymbol = context.Compilation
-                    .GetTypeByMetadataName(
-                        "Finite.Commands.AttributedModel.RemainderAttribute");
-
-                Debug.Assert(groupAttributeSymbol != null);
-                Debug.Assert(commandAttributeSymbol != null);
-                Debug.Assert(remainderAttributeSymbol != null);
-
-                var hasPositionalAssembly = context.Compilation
-                    .ReferencedAssemblyNames
-                    .Any(x => x.Name == "Finite.Commands.Parsing.Positional");
 
                 if (semanticModel.GetDeclaredSymbol(module.Key) is
                     not INamedTypeSymbol classSymbol)
@@ -78,33 +73,14 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
 
                     foreach (var parameterSymbol in methodSymbol.Parameters)
                     {
-                        var hasRemainderAttribute = parameterSymbol
-                            .GetAttributes()
-                            .Any(x => SymbolEqualityComparer.Default.Equals(
-                                x.AttributeClass, remainderAttributeSymbol));
-
-                        if (hasRemainderAttribute && !hasPositionalAssembly)
-                        {
-                            foreach (var location in parameterSymbol.Locations)
-                                context.ReportDiagnostic(
-                                    Diagnostic.Create(
-                                        MissingPositionalParserReference,
-                                        location,
-                                        parameterSymbol.Name,
-                                        methodSymbol.ToDisplayString(
-                                            SymbolDisplayFormat
-                                                .CSharpErrorMessageFormat)));
-                            return;
-                        }
-
                         context.AddSource(
-                            $"CommandFactory__{classSymbol.Name}__{methodSymbol.Name}__{parameterSymbol.Name}",
+                            $"CommandFactory.{classSymbol.Name}.{methodSymbol.Name}.{parameterSymbol.Name}",
                             GenerateParameterSource(classSymbol, methodSymbol,
-                                parameterSymbol, hasRemainderAttribute));
+                                parameterSymbol));
                     }
 
                     context.AddSource(
-                        $"CommandFactory__{classSymbol.Name}__{methodSymbol.Name}",
+                        $"CommandFactory.{classSymbol.Name}.{methodSymbol.Name}",
                         GenerateCommandSource(classSymbol, methodSymbol,
                             groupAttributeSymbol!, commandAttributeSymbol!));
                 }
@@ -170,15 +146,15 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                 if (
                     context.Node is ClassDeclarationSyntax classDeclaration
                     && classDeclaration.BaseList is BaseListSyntax baseList
-                    && baseList.ChildNodes()
+                    && baseList.Types
                         .Any(n => IsModuleClass(n, context.SemanticModel,
                             _moduleClassSymbol!))
                     && classDeclaration.AttributeLists is
                         SyntaxList<AttributeListSyntax> attributeLists
                     && attributeLists.Any(
-                        list => list.ChildNodes()
+                        list => list.Attributes
                             .Any(
-                                n => IsGroupAttribute(n, context.SemanticModel,
+                                n => IsAttribute(n, context.SemanticModel,
                                     _groupAttributeSymbol!)))
                     )
                 {
@@ -189,9 +165,9 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                         MethodDeclarationSyntax methodDeclaration
                     && _classes.Any(x => x.Contains(methodDeclaration))
                     && methodDeclaration.AttributeLists.Any(
-                        list => list.ChildNodes()
+                        list => list.Attributes
                             .Any(
-                                n => IsCommandAttribute(n,
+                                n => IsAttribute(n,
                                     context.SemanticModel,
                                     _commandAttributeSymbol!)))
                     )
@@ -200,36 +176,18 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                 }
             }
 
-            private static bool IsModuleClass(SyntaxNode node,
+            private static bool IsModuleClass(BaseTypeSyntax baseType,
                 SemanticModel model, INamedTypeSymbol moduleType)
             {
-                if (node is not BaseTypeSyntax baseType)
-                    return false;
-
                 var typeInfo = model.GetTypeInfo(baseType.Type);
 
                 return SymbolEqualityComparer.Default
                     .Equals(typeInfo.Type, moduleType);
             }
 
-            private static bool IsGroupAttribute(SyntaxNode node,
-                SemanticModel model, INamedTypeSymbol groupType)
-            {
-                if (node is not AttributeSyntax attr)
-                    return false;
-
-                var typeInfo = model.GetTypeInfo(attr.Name);
-
-                return SymbolEqualityComparer.Default
-                    .Equals(typeInfo.Type, groupType);
-            }
-
-            private static bool IsCommandAttribute(SyntaxNode node,
+            private static bool IsAttribute(AttributeSyntax attr,
                 SemanticModel model, INamedTypeSymbol commandType)
             {
-                if (node is not AttributeSyntax attr)
-                    return false;
-
                 var typeInfo = model.GetTypeInfo(attr.Name);
 
                 return SymbolEqualityComparer.Default

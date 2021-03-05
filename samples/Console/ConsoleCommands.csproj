@@ -8,11 +8,12 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Core/Finite.Commands.Core.csproj" />
     <ProjectReference Include="../../src/Parsing/Positional/Finite.Commands.Parsing.Positional.csproj" />
-    <ProjectReference Include="../../src/Models/Attributed/Core/Finite.Commands.Models.AttributedModel.csproj" />
+    <ProjectReference Include="../../src/Models/AttributedModel/Finite.Commands.Models.AttributedModel.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/Models/Attributed/SourceGenerator/Finite.Commands.Models.AttributedModel.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../tools/SourceGenerators/Models/AttributedModel/Finite.Commands.Models.AttributedModel.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../tools/SourceGenerators/Parsing/Positional/Finite.Commands.Parsing.Positional.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>

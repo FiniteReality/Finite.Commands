@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
 
 namespace Finite.Commands.AttributedModel.SourceGenerator
@@ -20,6 +21,26 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                     "was not a string")
                 : result;
         }
+
+        private static string GetBindingFlags(IMethodSymbol method)
+        {
+            var publicOrNonPublic = method.DeclaredAccessibility switch
+                {
+                    Accessibility.Public => "BindingFlags.Public",
+                    _ => "BindingFlags.NonPublic"
+                };
+
+            var staticOrInstance = method.IsStatic
+                ? "BindingFlags.Static"
+                : "BindingFlags.Instance";
+
+            return $"{publicOrNonPublic} | {staticOrInstance}";
+        }
+
+        private static string GetCallConv(IMethodSymbol method)
+            => !method.IsStatic
+                ? "CallingConventions.HasThis"
+                : "CallingConventions.Any";
 
         private static string GenerateCommandSource(
             INamedTypeSymbol @class,
@@ -72,18 +93,38 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                     .OrderBy(x => x)
                     .Select(x => $"using {x};"));
 
+            var reflectionTypes = string.Join(", ",
+                method.Parameters
+                    .Select(x => $"typeof({x.ToDisplayString()})"));
+
             return
 $@"{namespaces}
 
 namespace Finite.Commands.AttributedModel.Internal.Commands
 {{
-    class CommandFactory__{@class.Name}__{method.Name}
+    internal class CommandFactory__{@class.Name}__{method.Name}
         : ICommand
     {{
-        private static ObjectFactory CommandClassFactory
+        private static readonly ObjectFactory CommandClassFactory
             = ActivatorUtilities.CreateFactory(
                 typeof({@class.Name}),
                 Array.Empty<Type>());
+
+        private static readonly MethodInfo Method
+            = typeof({@class.Name})
+                .GetMethod(
+                    name: ""{method.Name}"",
+                    genericParameterCount: {method.Arity},
+                    bindingAttr: {GetBindingFlags(method)},
+                    binder: default,
+                    callConvention: {GetCallConv(method)},
+                    types: new[]
+                    {{
+                        {reflectionTypes}
+                    }},
+                    modifiers: null)!;
+
+        private IReadOnlyDictionary<object, object?>? _data;
 
         public CommandString Name {{ get; }} = {commandPath};
 
@@ -94,7 +135,13 @@ namespace Finite.Commands.AttributedModel.Internal.Commands
             }};
 
         public IReadOnlyDictionary<object, object?> Data
-            => new Dictionary<object, object?>();
+        {{
+            get
+            {{
+                return _data ??= new Dictionary<object, object?>(
+                    GetData());
+            }}
+        }}
 
         public async ValueTask<ICommandResult> ExecuteAsync(
             CommandContext context, CancellationToken cancellationToken)
@@ -115,6 +162,9 @@ namespace Finite.Commands.AttributedModel.Internal.Commands
                     disposable.Dispose();
             }}
         }}
+
+        private static IEnumerable<KeyValuePair<object, object?>> GetData()
+            => DataProvider.GetData(Method);
     }}
 }}";
         }

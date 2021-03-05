@@ -26,7 +26,9 @@ namespace Finite.Commands.Parsing
                 var binder = _binderFactory.GetBinder(parameter.Type);
                 CommandString token;
 
-                if (parameter is IRemainderParameter &&
+                if (parameter.TryGetData(
+                    PositionalCommandParserConstants.RemainderParameter,
+                        out object? _) &&
                     x == command.Parameters.Count - 1)
                 {
                     if (x == tokenCount - 1)
