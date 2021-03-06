@@ -10,16 +10,6 @@ namespace Finite.Commands.Parsing.Positional.SourceGenerator
     [Generator]
     public partial class PositionalSourceGenerator : ISourceGenerator
     {
-        private static readonly DiagnosticDescriptor
-            MissingAttributedModelReference = new(
-                id: "FCPS0001",
-                title: "Missing attributed model reference",
-                messageFormat: "This source generator is only useful if " +
-                    "Finite.Commands.AttributedModel is installed",
-                category: "Usage",
-                defaultSeverity: DiagnosticSeverity.Error,
-                isEnabledByDefault: true);
-
         public void Execute(GeneratorExecutionContext context)
         {
             var receiver = (SyntaxReceiver)context.SyntaxContextReceiver!;
@@ -30,14 +20,7 @@ namespace Finite.Commands.Parsing.Positional.SourceGenerator
                     x => x.Name == "Finite.Commands.Models.AttributedModel");
 
             if (!hasAttributedModel)
-            {
-                context.ReportDiagnostic(
-                    Diagnostic.Create(
-                        MissingAttributedModelReference,
-                        null));
-
                 return;
-            }
 
             SemanticModel? semanticModel = null;
             var parameterDataProviders = new List<(string, INamedTypeSymbol,
