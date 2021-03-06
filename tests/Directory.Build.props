@@ -21,6 +21,7 @@
   <Import Project="$(MSBuildThisFileDirectory)..\Directory.Build.props" />
 
   <PropertyGroup>
+    <IsPackable>false</IsPackable>
     <CoverletOutput>$(BaseArtifactsPath)coverage/$(MSBuildProjectName).xml</CoverletOutput>
     <CoverletOutputFormat>opencover</CoverletOutputFormat>
     <UseSourceLink>true</UseSourceLink>
