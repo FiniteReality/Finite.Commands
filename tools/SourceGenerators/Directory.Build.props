@@ -34,9 +34,4 @@
     <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
-  <ItemGroup>
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\AnalyzerReleases.Shipped.md" />
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\AnalyzerReleases.Unshipped.md" />
-  </ItemGroup>
-
 </Project>
