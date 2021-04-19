@@ -111,8 +111,7 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
             static bool IsValidAsyncReturnType(SemanticModel model,
                 ITypeSymbol returnType, INamedTypeSymbol commandResultType)
             {
-                return
-                    returnType.GetMembers()
+                return returnType.GetMembers()
                         .OfType<IMethodSymbol>()
                         .FirstOrDefault(x => x.Name == "GetAwaiter")
                         is IMethodSymbol getAwaiterMethod
@@ -122,9 +121,12 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                         .FirstOrDefault(x => x.Name == "GetResult")
                         is IMethodSymbol getResultMethod
 
-                    && getResultMethod.ReturnType.AllInterfaces
-                        .Contains(commandResultType,
-                            SymbolEqualityComparer.Default);
+                    && (
+                        SymbolEqualityComparer.Default.Equals(
+                            getResultMethod.ReturnType, commandResultType)
+                        || getResultMethod.ReturnType.AllInterfaces
+                            .Contains(commandResultType,
+                                SymbolEqualityComparer.Default));
             }
 
             static bool IsValidSyncReturnType(ITypeSymbol returnType,
