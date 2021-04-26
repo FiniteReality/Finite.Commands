@@ -49,6 +49,22 @@ namespace Finite.Commands.Parsing.Positional.SourceGenerator
 
                 var @class = method.ContainingType;
 
+                var position = method.Parameters
+                    .IndexOf(parameter, 0,
+                        SymbolEqualityComparer.Default);
+
+                if (position != method.Parameters.Length - 1)
+                {
+                    foreach (var location in parameter.Locations)
+                        context.ReportDiagnostic(
+                            Diagnostic.Create(
+                                RemainderParameterMustBeLastRule,
+                                location,
+                                parameter.Name));
+
+                    continue;
+                }
+
                 parameterDataProviders.Add(
                     (
                         $"ParameterDataProvider__{@class.Name}__{method.Name}__{parameter.Name}",
