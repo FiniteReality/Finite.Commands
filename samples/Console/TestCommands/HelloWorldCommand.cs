@@ -31,6 +31,15 @@ namespace ConsoleCommands
                 coolParameter,
                 coolerParameter);
 
+            if (Context.User.IsInRole("Cool"))
+            {
+                _logger.LogInformation("The user is very cool!");
+            }
+            else
+            {
+                _logger.LogInformation("The user is not cool.");
+            }
+
             return new ValueTask<ICommandResult>(new NoContentCommandResult());
         }
     }
