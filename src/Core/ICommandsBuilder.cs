@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Finite.Commands
 {
     /// <summary>
-    /// An interface for configuring commands services.
+    /// Defines an interface for configuring commands services.
     /// </summary>
     public interface ICommandsBuilder
     {
@@ -17,7 +17,7 @@ namespace Finite.Commands
         IServiceCollection Services { get; }
 
         /// <summary>
-        /// Adds the middleware to the command pipeline.
+        /// Adds middleware to the command pipeline.
         /// </summary>
         /// <param name="middleware">
         /// The middleware.
