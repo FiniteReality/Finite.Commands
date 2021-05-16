@@ -2,7 +2,8 @@ name: Publish Finite.Commands to MyGet
 
 on:
   push:
-    branches: [ $default-branch ]
+    branches:
+      - 'main'
     paths-ignore:
       - 'docs/**'
 
