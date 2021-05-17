@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Finite.Commands.AttributedModel.SourceGenerator
@@ -36,6 +37,9 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
         {
             var receiver = (SyntaxReceiver)context.SyntaxContextReceiver!;
 
+            var commandResultSymbol = context.Compilation
+                .GetTypeByMetadataName(
+                    "Finite.Commands.ICommandResult");
             var groupAttributeSymbol = context.Compilation
                 .GetTypeByMetadataName(
                     "Finite.Commands.AttributedModel.GroupAttribute");
@@ -43,6 +47,7 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                 .GetTypeByMetadataName(
                     "Finite.Commands.AttributedModel.CommandAttribute");
 
+            Debug.Assert(commandResultSymbol != null);
             Debug.Assert(groupAttributeSymbol != null);
             Debug.Assert(commandAttributeSymbol != null);
 
@@ -71,6 +76,23 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                             "Could not find method symbol for " +
                             $"{method.Identifier}");
 
+                    if (
+                        !IsValidSyncReturnType(methodSymbol.ReturnType,
+                            commandResultSymbol!)
+                        && !IsValidAsyncReturnType(semanticModel,
+                            methodSymbol.ReturnType, commandResultSymbol!))
+                    {
+                        context.ReportDiagnostic(
+                            Diagnostic.Create(
+                                InvalidCommandReturnTypeRule,
+                                method.GetLocation(),
+                                methodSymbol.ToDisplayString(),
+                                methodSymbol.ReturnType.ToDisplayString()));
+
+                        continue;
+                    }
+
+
                     foreach (var parameterSymbol in methodSymbol.Parameters)
                     {
                         context.AddSource(
@@ -84,6 +106,35 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                         GenerateCommandSource(classSymbol, methodSymbol,
                             groupAttributeSymbol!, commandAttributeSymbol!));
                 }
+            }
+
+            static bool IsValidAsyncReturnType(SemanticModel model,
+                ITypeSymbol returnType, INamedTypeSymbol commandResultType)
+            {
+                return returnType.GetMembers()
+                        .OfType<IMethodSymbol>()
+                        .FirstOrDefault(x => x.Name == "GetAwaiter")
+                        is IMethodSymbol getAwaiterMethod
+
+                    && getAwaiterMethod.ReturnType.GetMembers()
+                        .OfType<IMethodSymbol>()
+                        .FirstOrDefault(x => x.Name == "GetResult")
+                        is IMethodSymbol getResultMethod
+
+                    && (
+                        SymbolEqualityComparer.Default.Equals(
+                            getResultMethod.ReturnType, commandResultType)
+                        || getResultMethod.ReturnType.AllInterfaces
+                            .Contains(commandResultType,
+                                SymbolEqualityComparer.Default));
+            }
+
+            static bool IsValidSyncReturnType(ITypeSymbol returnType,
+                INamedTypeSymbol commandResultType)
+            {
+                return returnType.AllInterfaces
+                    .Contains(commandResultType,
+                        SymbolEqualityComparer.Default);
             }
         }
 

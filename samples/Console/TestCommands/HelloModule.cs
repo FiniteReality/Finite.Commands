@@ -33,5 +33,19 @@ namespace ConsoleCommands
 
             return new ValueTask<ICommandResult>(new NoContentCommandResult());
         }
+
+        [Command("other")]
+        public ValueTask<ICommandResult> OtherCommand(
+            [Remainder]int coolParameter, string coolerParameter)
+        {
+            _logger.LogInformation("Hello world from HelloModule!");
+
+            _logger.LogInformation(
+                "The int is {int} and the string is {string}",
+                coolParameter,
+                coolerParameter);
+
+            return new ValueTask<ICommandResult>(new NoContentCommandResult());
+        }
     }
 }
