@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using ConsoleCommands.Authentication;
 using Finite.Commands;
 using Finite.Commands.Parsing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -25,11 +25,14 @@ namespace ConsoleCommands
             // (PR was not merged for .NET 5.0)
             _ = services.Configure<HostOptions>(x => x.ShutdownTimeout = TimeSpan.Zero);
 
+            _ = services.AddSingleton<PlatformUserMiddleware>();
+
             _ = services.AddCommands()
                 .AddPositionalCommandParser()
                 .AddAttributedCommands(x => x.Assemblies.Add(
                     typeof(Program).Assembly.Location))
-                .Use(TestMiddlewareAsync);
+                .Use(TestMiddlewareAsync)
+                .Use<PlatformUserMiddleware>();
 
             _ = services.AddHostedService<LineReaderService>();
         }

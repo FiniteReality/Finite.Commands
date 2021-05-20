@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Finite.Commands
@@ -12,6 +13,10 @@ namespace Finite.Commands
             = new Dictionary<object, object?>();
         public override IDictionary<string, object?> Parameters { get; set; }
             = new Dictionary<string, object?>();
+
+        public override ClaimsPrincipal User { get; set; }
+            = new ClaimsPrincipal(new ClaimsIdentity());
+
         public override ICommand Command { get; set; } = null!;
 
         public override IServiceProvider Services

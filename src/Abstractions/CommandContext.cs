@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Security.Claims;
 
 namespace Finite.Commands
 {
@@ -25,6 +25,11 @@ namespace Finite.Commands
         /// parameters within the scope of this command.
         /// </summary>
         public abstract IDictionary<string, object?> Parameters { get; set; }
+
+        /// <summary>
+        /// Gets or sets the user for this cmomand.
+        /// </summary>
+        public abstract ClaimsPrincipal User { get; set; }
 
         /// <summary>
         /// Gets or sets the command to execute.
