@@ -1,4 +1,4 @@
-name: Publish Finite.Commands to MyGet
+name: Build pull request
 
 on:
   pull_request:

@@ -1,4 +1,4 @@
-name: Publish Finite.Commands to MyGet
+name: Build and publish Finite.Commands
 
 on:
   push:
@@ -6,6 +6,9 @@ on:
       - 'main'
     paths-ignore:
       - 'docs/**'
+
+env:
+  MYGET_FEED: https://www.myget.org/F/finitereality/api/v2/package
 
 jobs:
   build:
@@ -35,3 +38,6 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           path: ${{ github.workspace }}/artifacts/pkg/Release/*.nupkg
+
+      - name: Publish packages
+        run: dotnet nuget push "${{ github.workspace }}/artifacts/pkg/Release/*.nupkg" -k "${{ secrets.myget }}" -s "$MYGET_FEED"
