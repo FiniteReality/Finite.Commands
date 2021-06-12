@@ -97,7 +97,6 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
             private readonly List<MethodDeclarationSyntax> _methods;
 
             private INamedTypeSymbol? _moduleClassSymbol;
-            private INamedTypeSymbol? _groupAttributeSymbol;
             private INamedTypeSymbol? _commandAttributeSymbol;
 
             public ILookup<ClassDeclarationSyntax, MethodDeclarationSyntax> GetCommands()
@@ -132,15 +131,11 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                 _moduleClassSymbol ??= context.SemanticModel.Compilation
                     .GetTypeByMetadataName(
                         "Finite.Commands.AttributedModel.Module");
-                _groupAttributeSymbol ??= context.SemanticModel.Compilation
-                    .GetTypeByMetadataName(
-                        "Finite.Commands.AttributedModel.GroupAttribute");
                 _commandAttributeSymbol ??= context.SemanticModel.Compilation
                     .GetTypeByMetadataName(
                         "Finite.Commands.AttributedModel.CommandAttribute");
 
                 Debug.Assert(_moduleClassSymbol != null);
-                Debug.Assert(_groupAttributeSymbol != null);
                 Debug.Assert(_commandAttributeSymbol != null);
 
                 if (
@@ -149,13 +144,6 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                     && baseList.Types
                         .Any(n => IsModuleClass(n, context.SemanticModel,
                             _moduleClassSymbol!))
-                    && classDeclaration.AttributeLists is
-                        SyntaxList<AttributeListSyntax> attributeLists
-                    && attributeLists.Any(
-                        list => list.Attributes
-                            .Any(
-                                n => IsAttribute(n, context.SemanticModel,
-                                    _groupAttributeSymbol!)))
                     )
                 {
                     _classes.Add(classDeclaration);
