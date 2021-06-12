@@ -40,7 +40,7 @@ namespace Finite.Commands.Parsing
                     start = token.Portion.Start;
 
                 var potentialGroup = store.GetCommandGroup(token);
-                if (potentialGroup != null)
+                if (!context.Path.HasValue && potentialGroup != null)
                 {
                     if (token.Value.IndexOfAny(StandardGroupChars) >= 0 ||
                         HasUnexpectedQuotedPortion(token.Value))

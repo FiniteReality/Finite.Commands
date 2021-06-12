@@ -2,24 +2,34 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Finite.Commands.AttributedModel.SourceGenerator
 {
     public partial class AttributedModelSourceGenerator
     {
-        private static string GetStringFromAttribute(ISymbol symbol,
+        private static string? GetStringFromAttribute(ISymbol symbol,
             INamedTypeSymbol attributeType)
         {
             var attribute = symbol.GetAttributes()
-                .First(x => SymbolEqualityComparer.Default.Equals(
+                .FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(
                     x.AttributeClass, attributeType));
-            var firstArgument = attribute.ConstructorArguments.First();
 
-            return firstArgument.Value is not string result
-                ? throw new InvalidOperationException(
+            if (attribute == null)
+                return null;
+
+            if (attribute.ConstructorArguments.Length == 0)
+                return null;
+
+            var firstArgument = attribute.ConstructorArguments[0];
+
+            if (firstArgument.Kind != TypedConstantKind.Primitive
+                && firstArgument.Value is not string)
+                throw new InvalidOperationException(
                     $"First argument to attribute {attributeType.Name} " +
-                    "was not a string")
-                : result;
+                    "was not a string");
+
+            return firstArgument.ToCSharpString();
         }
 
         private static string GetBindingFlags(IMethodSymbol method)
@@ -53,7 +63,11 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                 var segment = GetStringFromAttribute(method,
                     commandAttributeSymbol);
 
-                commandPath = $"new CommandString(\"{segment}\")";
+                if (segment == null)
+                    throw new InvalidOperationException(
+                        "Missing CommandAttribute");
+
+                commandPath = $"new CommandString({segment})";
 
                 var currentClass = @class;
                 do
@@ -61,10 +75,11 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                     segment = GetStringFromAttribute(currentClass,
                         groupAttributeSymbol);
 
-                    commandPath
-                        = "CommandPath.Combine(" +
-                        $"new CommandString(\"{segment}\"), " +
-                        $"{commandPath})";
+                    if (segment != null)
+                        commandPath
+                            = "CommandPath.Combine(" +
+                            $"new CommandString({segment}), " +
+                            $"{commandPath})";
 
                     currentClass = @class.ContainingType;
                 }
