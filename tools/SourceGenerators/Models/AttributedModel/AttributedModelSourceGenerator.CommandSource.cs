@@ -80,6 +80,13 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
                     .Select(
                         x => $"new CommandFactory__{@class.Name}__{method.Name}__{x.Name}()"));
 
+            var parameterArray = parameterTypes == string.Empty
+                ? "Array.Empty<IParameter>()"
+                : $@"new IParameter[]
+            {{
+                {parameterTypes}
+            }}";
+
             var parameterAccessors = string.Join(", ",
                 method.Parameters
                     .Select(
@@ -96,6 +103,13 @@ namespace Finite.Commands.AttributedModel.SourceGenerator
             var reflectionTypes = string.Join(", ",
                 method.Parameters
                     .Select(x => $"typeof({x.ToDisplayString()})"));
+
+            var reflectionArray = reflectionTypes == string.Empty
+                ? "types: Array.Empty<Type>()"
+                : $@"types: new[]
+                    {{
+                        {reflectionTypes}
+                    }}";
 
             return
 $@"{namespaces}
@@ -118,10 +132,7 @@ namespace Finite.Commands.AttributedModel.Internal.Commands
                     bindingAttr: {GetBindingFlags(method)},
                     binder: default,
                     callConvention: {GetCallConv(method)},
-                    types: new[]
-                    {{
-                        {reflectionTypes}
-                    }},
+                    {reflectionArray},
                     modifiers: null)!;
 
         private IReadOnlyDictionary<object, object?>? _data;
@@ -129,10 +140,7 @@ namespace Finite.Commands.AttributedModel.Internal.Commands
         public CommandString Name {{ get; }} = {commandPath};
 
         public IReadOnlyList<IParameter> Parameters {{ get; }}
-            = new IParameter[]
-            {{
-                {parameterTypes}
-            }};
+            = {parameterArray};
 
         public IReadOnlyDictionary<object, object?> Data
         {{

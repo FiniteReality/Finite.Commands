@@ -42,5 +42,13 @@ namespace ConsoleCommands
 
             return new ValueTask<ICommandResult>(new NoContentCommandResult());
         }
+
+        [Command("code")]
+        public ValueTask<ICommandResult> HelloCodeCommand()
+        {
+            _logger.LogInformation("Hello code from HelloModule!");
+
+            return new ValueTask<ICommandResult>(new NoContentCommandResult());
+        }
     }
 }
